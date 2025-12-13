@@ -69,6 +69,54 @@
         margin-left: 8px;
       }
     }
+    
+    /* 提示消息 */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      color: white;
+      padding: 20px 32px;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(255, 107, 107, 0.5);
+      z-index: 1000;
+      font-size: 16px;
+      font-weight: 500;
+      min-width: 300px;
+      max-width: 90%;
+      text-align: center;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+    .toast-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .toast-message {
+      flex: 1;
+    }
+    @media only screen and (max-width: 750px) {
+      .toast {
+        min-width: 280px;
+        padding: 18px 24px;
+        font-size: 15px;
+      }
+      .toast-icon {
+        font-size: 22px;
+      }
+    }
     /* 猪猪侠 */
     .pig-runner {
       position: absolute;
@@ -376,6 +424,11 @@
       </div>
     </div>
   </div>
+  <!-- 提示消息 -->
+  <div id="toast" class="toast">
+    <span class="toast-icon">⚠️</span>
+    <span class="toast-message"></span>
+  </div>
  <script>
   // ------------- 状态 -------------
   let isLoggedIn = false
@@ -388,6 +441,17 @@
   const loginUserEl = document.getElementById('loginUser')
   const loginSecEl = document.getElementById('loginSec')
   const loginStatusIcon = document.getElementById('loginStatusIcon')
+  const toast = document.getElementById('toast')
+  const toastMessage = toast.querySelector('.toast-message')
+  
+  // 显示提示消息
+  function showToast(message, duration = 3000) {
+    toastMessage.textContent = message
+    toast.classList.add('show')
+    setTimeout(() => {
+      toast.classList.remove('show')
+    }, duration)
+  }
 
   // 更新登录状态图标
   function updateLoginStatusIcon(show) {
@@ -497,15 +561,19 @@
           closeLogin()
           updateLoginStatusIcon(true)
         } else {
-          alert('登录失败：' + (response.Message || '未知错误'))
+          showToast('登录失败：' + (response.Message || '未知错误'))
         }
       },
       error: function (xhr) {
         let msg = '登录失败'
         if (xhr.responseJSON && xhr.responseJSON.Message) {
           msg += '：' + xhr.responseJSON.Message
+        } else if (xhr.status === 0) {
+          msg += '：无法连接到服务器'
+        } else {
+          msg += '：网络错误'
         }
-        alert(msg)
+        showToast(msg)
       }
     })
   }
