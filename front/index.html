@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+  <meta name="viewport"
+    content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
   <title>Document</title>
   <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
   <script src="https://cdn.staticfile.org/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -15,28 +17,35 @@
       font-display: auto;
       src: url('./cour.ttf') format('truetype');
     }
+
     * {
       padding: 0;
       margin: 0;
     }
-    html, body {
+
+    html,
+    body {
       width: 100%;
       height: 100%;
     }
+
     html {
       font-family: fangsong;
       color: #fff;
     }
+
     body {
       display: flex;
       flex-direction: column;
     }
+
     .meinv-bg {
       width: 100%;
       height: 100%;
       background: url('./girl.jpg') no-repeat;
       background-position: center top;
     }
+
     .text-content {
       position: absolute;
       left: 0;
@@ -45,11 +54,13 @@
       height: 100%;
       overflow-y: auto;
     }
+
     h1 {
       text-align: center;
       color: rgb(191, 229, 235);
       font-size: 50px;
     }
+
     .login-status-icon {
       display: none;
       color: #00FF00;
@@ -59,9 +70,11 @@
       vertical-align: bottom;
       text-shadow: 0 0 3px rgba(0, 255, 0, 0.8), 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
+
     .login-status-icon.show {
       display: inline-block;
     }
+
     /* 移动端调整 */
     @media only screen and (max-width: 750px) {
       .login-status-icon {
@@ -69,7 +82,7 @@
         margin-left: 8px;
       }
     }
-    
+
     /* 提示消息 */
     .toast {
       position: fixed;
@@ -95,28 +108,34 @@
       justify-content: center;
       gap: 12px;
     }
+
     .toast.show {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
       pointer-events: auto;
     }
+
     .toast-icon {
       font-size: 24px;
       flex-shrink: 0;
     }
+
     .toast-message {
       flex: 1;
     }
+
     @media only screen and (max-width: 750px) {
       .toast {
         min-width: 280px;
         padding: 18px 24px;
         font-size: 15px;
       }
+
       .toast-icon {
         font-size: 22px;
       }
     }
+
     /* 猪猪侠 */
     .pig-runner {
       position: absolute;
@@ -132,6 +151,7 @@
       image-rendering: -webkit-optimize-contrast;
       image-rendering: crisp-edges;
     }
+
     .pig-runner img {
       width: 100%;
       height: 100%;
@@ -139,7 +159,10 @@
       display: block;
       image-rendering: auto;
     }
-    select, input, textarea {
+
+    select,
+    input,
+    textarea {
       font-family: fangsong;
       width: 250px;
       font-size: 20px;
@@ -150,20 +173,24 @@
       outline: none;
       padding: 0 10px;
     }
+
     textarea {
       padding: 10px;
       resize: none;
     }
+
     .cell {
       display: flex;
       align-items: center;
       margin-bottom: 20px;
     }
+
     .cell label {
       margin-right: 20px;
       font-size: 20px;
       width: 150px;
     }
+
     .require label::after {
       content: '*';
       color: #e9f539;
@@ -192,25 +219,29 @@
       white-space: nowrap;
       box-sizing: border-box;
     }
-    
+
     /* 移动端样式 */
     @media only screen and (max-width: 750px) {
       h1 {
         font-size: 25px;
         margin: 30px 20px;
       }
+
       .cell-content {
         padding: 0 20px;
       }
+
       .cell {
         margin-bottom: 10px;
       }
 
-      select, input, textarea {
+      select,
+      input,
+      textarea {
         font-size: 16px;
         width: 200px;
         min-height: 25px;
-      } 
+      }
 
       textarea {
         resize: none;
@@ -221,6 +252,7 @@
         font-size: 16px;
         width: 100px;
       }
+
       .gan-btn {
         width: 150px;
         height: 40px;
@@ -228,6 +260,7 @@
         font-size: 24px;
       }
     }
+
     /* pc端样式 */
     @media only screen and (min-width: 760px) {
       .cell-content {
@@ -235,32 +268,40 @@
         width: max-content;
         margin: 0 auto;
       }
+
       h1 {
         margin: 30px 50px 50px;
       }
+
       .left-cell {
         margin-right: 80px;
       }
+
       .right-cell {
         height: inherit;
       }
-      .textarea-cell, .textarea-cell textarea {
+
+      .textarea-cell,
+      .textarea-cell textarea {
         height: 100%;
       }
+
       .last-child {
         margin-bottom: 0;
       }
+
       .gan-btn {
         width: 300px;
         height: 50px;
         border-radius: 10px;
         font-size: 26px;
       }
+
       #text {
         padding: 20px 40px;
       }
     }
-    
+
     /* 登录弹窗 */
     .modal-mask {
       display: none;
@@ -269,31 +310,35 @@
       top: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.35);
+      background: rgba(0, 0, 0, 0.35);
       z-index: 20;
       align-items: center;
       justify-content: center;
     }
+
     .modal {
       width: 320px;
       background: #fefefe;
       border-radius: 12px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
       padding: 20px;
       color: #333;
       font-family: "Segoe UI", sans-serif;
     }
+
     .modal h3 {
       margin: 0 0 12px;
       text-align: center;
       color: #444;
     }
+
     .modal .form-item {
       display: flex;
       flex-direction: column;
       margin-bottom: 12px;
       font-size: 14px;
     }
+
     .modal input {
       width: 100%;
       border: 1px solid #e0e0e0;
@@ -303,12 +348,14 @@
       font-family: inherit;
       box-sizing: border-box;
     }
+
     .modal .btn-row {
       display: flex;
       justify-content: flex-end;
       gap: 10px;
       margin-top: 10px;
     }
+
     .modal button {
       padding: 8px 14px;
       border: none;
@@ -317,94 +364,103 @@
       font-size: 14px;
       font-weight: 600;
     }
-    .btn-cancel { background: #f0f0f0; color: #333; }
-    .btn-ok { background: #ffd84d; color: #3a2a00; }
+
+    .btn-cancel {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-ok {
+      background: #ffd84d;
+      color: #3a2a00;
+    }
   </style>
 </head>
+
 <body>
-    <div class="meinv-bg"></div>
-    <div class="text-content">
-      <div id="pig" class="pig-runner" title="点我登陆/查看状态">
-        <img src="./fly.webp" alt="猪猪侠" />
-      </div>
-      <h1>超级无敌棒棒糖<span id="loginStatusIcon" class="login-status-icon">✓</span></h1>
-      <div class="cell-content">
-        <div class="left-cell">
-          <p class="cell require">
-            <label>1、干</label>
-            <select id="do">
-              <option value="" style="display:none"></option>
-              <option value="build">build</option>
-              <option value="deploy">deploy</option>
-              <option value="gogogo">gogogo</option>
-            </select>
-          </p>
-      
-          <p class="cell require">
-            <label>2、运行环境</label>
-            <select id="env">
-              <option value="" style="display:none"></option>
-              <option value="dev">dev</option>
-              <option value="stag">stag</option>
-              <option value="prod">prod</option>
-            </select>
-          </p>
-      
-          <p class="cell">
-            <label>3、代码分支</label>
-            <input id="branch" type="text">
-          </p>
-      
-          <p class="cell">
-            <label>4、发布版本</label>
-            <input id="version" type="text">
-          </p>
-      
-          <p class="cell">
-            <label>5、灰度发布</label>
-            <select id="gray">
-              <option value="no">no</option>
-              <option value="yes">yes</option>
-            </select>
-          </p>
-      
-          <p class="cell">
-            <label>6、跳过测试</label>
-            <select id="skiptest">
-              <option value="no">no</option>
-              <option value="yes">yes</option>
-            </select>
-          </p>
-      
-          <p class="cell">
-            <label>7、强制构建</label>
-            <select id="force">
-              <option value="no">no</option>
-              <option value="yes">yes</option>
-            </select>
-          </p>
-      
-          <p class="cell last-child">
-            <label>8、项目类别</label>
-            <select id="category">
-              <option value="" style="display:none"></option>
-              <option value="java">java</option>
-              <option value="node">node</option>
-              <option value="dockerfile">dockerfile</option>
-            </select>
-          </p>
-        </div>
-        <div class="right-cell">
-          <p class="cell require textarea-cell">
-            <label>9、项目列表</label>
-            <textarea id="projects" cols="30" rows="10" placeholder="一个项目一行"></textarea>
-          </p>
-        </div>
-      </div>
-      <button class="gan-btn" onclick="start()">开 干</button>
-      <div id="text"></div>
+  <div class="meinv-bg"></div>
+  <div class="text-content">
+    <div id="pig" class="pig-runner" title="点我登陆/查看状态">
+      <img src="./fly.webp" alt="猪猪侠" />
     </div>
-    
+    <h1>超级无敌棒棒糖<span id="loginStatusIcon" class="login-status-icon">✓</span></h1>
+    <div class="cell-content">
+      <div class="left-cell">
+        <p class="cell require">
+          <label>1、干</label>
+          <select id="do">
+            <option value="" style="display:none"></option>
+            <option value="build">build</option>
+            <option value="deploy">deploy</option>
+            <option value="gogogo">gogogo</option>
+          </select>
+        </p>
+
+        <p class="cell require">
+          <label>2、运行环境</label>
+          <select id="env">
+            <option value="" style="display:none"></option>
+            <option value="dev">dev</option>
+            <option value="stag">stag</option>
+            <option value="prod">prod</option>
+          </select>
+        </p>
+
+        <p class="cell">
+          <label>3、代码分支</label>
+          <input id="branch" type="text">
+        </p>
+
+        <p class="cell">
+          <label>4、发布版本</label>
+          <input id="version" type="text">
+        </p>
+
+        <p class="cell">
+          <label>5、灰度发布</label>
+          <select id="gray">
+            <option value="no">no</option>
+            <option value="yes">yes</option>
+          </select>
+        </p>
+
+        <p class="cell">
+          <label>6、跳过测试</label>
+          <select id="skiptest">
+            <option value="no">no</option>
+            <option value="yes">yes</option>
+          </select>
+        </p>
+
+        <p class="cell">
+          <label>7、强制构建</label>
+          <select id="force">
+            <option value="no">no</option>
+            <option value="yes">yes</option>
+          </select>
+        </p>
+
+        <p class="cell last-child">
+          <label>8、项目类别</label>
+          <select id="category">
+            <option value="" style="display:none"></option>
+            <option value="java">java</option>
+            <option value="node">node</option>
+            <option value="dockerfile">dockerfile</option>
+          </select>
+        </p>
+      </div>
+      <div class="right-cell">
+        <p class="cell require textarea-cell">
+          <label>9、项目列表</label>
+          <textarea id="projects" cols="30" rows="10" placeholder="一个项目一行"></textarea>
+        </p>
+      </div>
+    </div>
+    <button class="gan-btn" onclick="start()">开 干</button>
+    <div id="text"></div>
+  </div>
+
   </div>
   <!-- 登录弹窗 -->
   <div id="modalMask" class="modal-mask">
@@ -429,210 +485,248 @@
     <span class="toast-icon">⚠️</span>
     <span class="toast-message"></span>
   </div>
- <script>
-  // ------------- 状态 -------------
-  let isLoggedIn = false
-  let currentUser = ''
-  let currentToken = ''
-  let currentSec = ''
+  <script>
+    // ------------- 状态 -------------
+    let isLoggedIn = false
+    let currentUser = ''
+    let currentToken = ''
+    let currentSec = ''
 
-  const pigEl = document.getElementById('pig')
-  const modalMask = document.getElementById('modalMask')
-  const loginUserEl = document.getElementById('loginUser')
-  const loginSecEl = document.getElementById('loginSec')
-  const loginStatusIcon = document.getElementById('loginStatusIcon')
-  const toast = document.getElementById('toast')
-  const toastMessage = toast.querySelector('.toast-message')
-  
-  // 显示提示消息
-  function showToast(message, duration = 3000) {
-    toastMessage.textContent = message
-    toast.classList.add('show')
-    setTimeout(() => {
-      toast.classList.remove('show')
-    }, duration)
-  }
+    const pigEl = document.getElementById('pig')
+    const modalMask = document.getElementById('modalMask')
+    const loginUserEl = document.getElementById('loginUser')
+    const loginSecEl = document.getElementById('loginSec')
+    const loginStatusIcon = document.getElementById('loginStatusIcon')
+    const toast = document.getElementById('toast')
+    const toastMessage = toast.querySelector('.toast-message')
 
-  // 更新登录状态图标
-  function updateLoginStatusIcon(show) {
-    if (!loginStatusIcon) return
-    if (show && isLoggedIn) {
-      loginStatusIcon.classList.add('show')
-    } else {
-      loginStatusIcon.classList.remove('show')
+    // 显示提示消息
+    function showToast(message, duration = 3000) {
+      toastMessage.textContent = message
+      toast.classList.add('show')
+      setTimeout(() => {
+        toast.classList.remove('show')
+      }, duration)
     }
-  }
 
-  // 从本地恢复
-  ;(() => {
-    const saved = JSON.parse(localStorage.getItem('gan_login') || '{}')
-    if (saved.user && saved.token) {
-      isLoggedIn = true
-      currentUser = saved.user
-      currentToken = saved.token
-      currentSec = saved.sec || ''
-      updateLoginStatusIcon(true)
+    // 更新登录状态图标
+    function updateLoginStatusIcon(show) {
+      if (!loginStatusIcon) return
+      if (show && isLoggedIn) {
+        loginStatusIcon.classList.add('show')
+      } else {
+        loginStatusIcon.classList.remove('show')
+      }
     }
-  })()
 
-  // ------------- 猪猪侠跑动 -------------
-  let pigTimer = null
-  let targetX = 20
-  let targetY = 20
-  
-  function movePig() {
-    const areaW = window.innerWidth - 100
-    const areaH = window.innerHeight - 120
-    // 设置新的目标位置
-    targetX = Math.max(10, Math.random() * areaW)
-    targetY = Math.max(10, Math.random() * areaH)
-    // 通过 CSS transition 平滑移动到目标位置
-    pigEl.style.left = targetX + 'px'
-    pigEl.style.top = targetY + 'px'
-    // 随机旋转和缩放，但变化更平滑
-    const scale = 0.9 + Math.random() * 0.2
-    const rotate = Math.random() * 20 - 10
-    pigEl.style.transform = `scale(${scale}) rotate(${rotate}deg)`
-  }
-  function startRun() {
-    if (pigTimer) return
-    movePig()
-    // 每2秒移动到新位置，与 CSS transition 时间匹配
-    pigTimer = setInterval(movePig, 2000)
-  }
-  function stopRun() {
-    if (pigTimer) {
-      clearInterval(pigTimer)
-      pigTimer = null
-    }
-  }
-  pigEl.addEventListener('mouseenter', stopRun)
-  pigEl.addEventListener('mouseleave', startRun)
+    // 从本地恢复
+    ; (() => {
+      const saved = JSON.parse(localStorage.getItem('gan_login') || '{}')
+      if (saved.user && saved.token) {
+        isLoggedIn = true
+        currentUser = saved.user
+        currentToken = saved.token
+        currentSec = saved.sec || ''
+        updateLoginStatusIcon(true)
+      }
+    })()
 
-  pigEl.addEventListener('click', () => {
-    if (isLoggedIn) {
-      alert('你已登录，走开！')
-    } else {
-      openLogin()
-    }
-  })
+    // ------------- 猪猪侠跑动 -------------
+    let pigTimer = null
+    let targetX = 20
+    let targetY = 20
 
-  // ------------- 登录弹窗 -------------
-  function openLogin() {
-    modalMask.style.display = 'flex'
-    loginUserEl.value = currentUser || ''
-    loginSecEl.value = ''
-    setTimeout(() => loginUserEl.focus(), 0)
-  }
-  function closeLogin() {
-    modalMask.style.display = 'none'
-  }
-  document.getElementById('loginCancel').onclick = closeLogin
-  // 回车键提交
-  loginSecEl.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      document.getElementById('loginOk').click()
+    function movePig() {
+      const areaW = window.innerWidth - 100
+      const areaH = window.innerHeight - 120
+      // 设置新的目标位置
+      targetX = Math.max(10, Math.random() * areaW)
+      targetY = Math.max(10, Math.random() * areaH)
+      // 通过 CSS transition 平滑移动到目标位置
+      pigEl.style.left = targetX + 'px'
+      pigEl.style.top = targetY + 'px'
+      // 随机旋转和缩放，但变化更平滑
+      const scale = 0.9 + Math.random() * 0.2
+      const rotate = Math.random() * 20 - 10
+      pigEl.style.transform = `scale(${scale}) rotate(${rotate}deg)`
     }
-  })
-  document.getElementById('loginOk').onclick = function() {
-    const u = loginUserEl.value.trim()
-    const s = loginSecEl.value.trim()
-    if (!u || !s) {
-      alert('请填写用户名和密码')
-      return
+    function startRun() {
+      if (pigTimer) return
+      movePig()
+      // 每2秒移动到新位置，与 CSS transition 时间匹配
+      pigTimer = setInterval(movePig, 2000)
     }
-    // 计算 sha1(用户名+密码)，与后端密码生成工具保持一致
-    const secSha1 = CryptoJS.SHA1(u + s).toString()
-    // 调用后端接口验证用户名密码并获取token
-    $.ajax({
-      type: 'POST',
-      url: 'http://127.0.0.1:9527/get/token',
-      headers: {
-        user: u,
-        sec: secSha1
-      },
-      success: function (response) {
-        if (response.Status === 'Success' && response.Token) {
-          isLoggedIn = true
-          currentUser = u
-          currentToken = response.Token
-          currentSec = secSha1
-          localStorage.setItem('gan_login', JSON.stringify({user: u, token: response.Token, sec: secSha1}))
-          closeLogin()
-          updateLoginStatusIcon(true)
-        } else {
-          showToast('登录失败：' + (response.Message || '未知错误'))
-        }
-      },
-      error: function (xhr) {
-        let msg = '登录失败'
-        if (xhr.responseJSON && xhr.responseJSON.Message) {
-          msg += '：' + xhr.responseJSON.Message
-        } else if (xhr.status === 0) {
-          msg += '：无法连接到服务器'
-        } else {
-          msg += '：网络错误'
-        }
-        showToast(msg)
+    function stopRun() {
+      if (pigTimer) {
+        clearInterval(pigTimer)
+        pigTimer = null
+      }
+    }
+    pigEl.addEventListener('mouseenter', stopRun)
+    pigEl.addEventListener('mouseleave', startRun)
+
+    pigEl.addEventListener('click', () => {
+      if (isLoggedIn) {
+        showToast('你已登录，走开！')
+      } else {
+        openLogin()
       }
     })
-  }
 
-  // 点击遮罩关闭
-  modalMask.addEventListener('click', (e) => {
-    if (e.target === modalMask) closeLogin()
-  })
-
-  // ------------- 开干 -------------
-  function start() {
-    let doValue = $('#do option:selected').val()
-    if (!doValue) return window.alert('请选择"干"')
-
-    let env = $('#env option:selected').val()
-    if (!env) return window.alert('请选择运行环境')
-
-    let projects = $('#projects').val()
-    if (!projects) return window.alert('请输入项目列表')
-
-    if (!isLoggedIn) {
-      openLogin()
-      return
+    // ------------- 登录弹窗 -------------
+    function openLogin() {
+      modalMask.style.display = 'flex'
+      loginUserEl.value = currentUser || ''
+      loginSecEl.value = ''
+      setTimeout(() => loginUserEl.focus(), 0)
+    }
+    function closeLogin() {
+      modalMask.style.display = 'none'
+    }
+    document.getElementById('loginCancel').onclick = closeLogin
+    // 回车键提交
+    loginSecEl.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        document.getElementById('loginOk').click()
+      }
+    })
+    document.getElementById('loginOk').onclick = function () {
+      const u = loginUserEl.value.trim()
+      const s = loginSecEl.value.trim()
+      if (!u || !s) {
+        showToast('请填写用户名和密码')
+        return
+      }
+      // 计算 sha1(用户名+密码)，与后端密码生成工具保持一致
+      const secSha1 = CryptoJS.SHA1(u + s).toString()
+      // 调用后端接口验证用户名密码并获取token
+      $.ajax({
+        type: 'POST',
+        url: 'http://127.0.0.1:9527/get/token',
+        headers: {
+          user: u,
+          sec: secSha1
+        },
+        success: function (response) {
+          if (response.Status === 'Success' && response.Token) {
+            isLoggedIn = true
+            currentUser = u
+            currentToken = response.Token
+            currentSec = secSha1
+            localStorage.setItem('gan_login', JSON.stringify({ user: u, token: response.Token, sec: secSha1 }))
+            closeLogin()
+            updateLoginStatusIcon(true)
+          } else {
+            showToast('登录失败：' + (response.Message || '未知错误'))
+          }
+        },
+        error: function (xhr) {
+          let msg = '登录失败'
+          if (xhr.responseJSON && xhr.responseJSON.Message) {
+            msg += '：' + xhr.responseJSON.Message
+          } else if (xhr.status === 0) {
+            msg += '：无法连接到服务器'
+          } else {
+            msg += '：网络错误'
+          }
+          showToast(msg)
+        }
+      })
     }
 
-    $('#text').html('干ing....')
-    $.ajax({
-      type: 'POST',
-      url: 'http://127.0.0.1:9527/hook/hand',
-      data: JSON.stringify({
-          do: doValue,
-          env: env,
-          branch: $('#branch').val(),
-          version: $('#version').val(),
-          gray: $('#gray option:selected').val() || '',
-          skiptest: $('#skiptest option:selected').val() || '',
-          force: $('#force option:selected').val() || '',
-          category: $('#category option:selected').val() || '',
-          projects: projects.split(/[\r\n]/)
-      }),
-      headers: {
-        token: currentToken || ''
-      },
-      contentType: 'application/json',
-      success: function (response) {
-        let str = response
-        str = str.replace(/ /g, '&nbsp;').replace(/[\r\n]/g, '<br/>').replace(/\[.*?m/g, '').replace(//g, '')
-        console.log('str', str)
-        $('#text').html(str)
-      },
-      // xhr是ajax对象
-      error: function (xhr) {
-        console.log('xhr', xhr)
-        $('#text').html('干失败了')
+    // 点击遮罩关闭
+    modalMask.addEventListener('click', (e) => {
+      if (e.target === modalMask) closeLogin()
+    })
+
+    // ------------- 开干 -------------
+    async function start() {
+      let doValue = $('#do option:selected').val()
+      if (!doValue) return showToast('请选择"干"')
+
+      let env = $('#env option:selected').val()
+      if (!env) return showToast('请选择运行环境')
+
+      let projects = $('#projects').val()
+      if (!projects) return showToast('请输入项目列表')
+
+      if (!isLoggedIn) {
+        openLogin()
+        return
       }
-    });
-  }
-  // 启动小猪跑动
-  startRun()
- </script>
+
+      const textEl = document.getElementById('text')
+      textEl.innerHTML = '干ing....<br/>'
+
+      try {
+        const response = await fetch('http://127.0.0.1:9527/hook/hand', {
+          method: 'POST',
+          headers: {
+            'token': currentToken || '',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            do: doValue,
+            env: env,
+            branch: $('#branch').val(),
+            version: $('#version').val(),
+            gray: $('#gray option:selected').val() || '',
+            skiptest: $('#skiptest option:selected').val() || '',
+            force: $('#force option:selected').val() || '',
+            category: $('#category option:selected').val() || '',
+            projects: projects.split(/[\r\n]/)
+          })
+        })
+
+        if (!response.ok) {
+          const errText = await response.text()
+          try {
+            const errJson = JSON.parse(errText)
+            showToast('干失败了：' + (errJson.Message || response.statusText))
+          } catch (e) {
+            showToast('干失败了：' + (errText || response.statusText))
+          }
+          textEl.innerHTML += '<br/>请求失败'
+          return
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          let chunk = decoder.decode(value, { stream: true })
+
+          // Basic HTML escape to prevent XSS (though content is logs)
+          chunk = chunk.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+          // Remove ANSI codes
+          chunk = chunk.replace(/\[.*?m/g, '')
+
+          // Formatting: spaces to &nbsp;, newlines to <br/>
+          chunk = chunk.replace(/ /g, '&nbsp;').replace(/[\r\n]/g, '<br/>')
+
+          textEl.insertAdjacentHTML('beforeend', chunk)
+
+          // Auto scroll
+          const contentEl = document.querySelector('.text-content')
+          if (contentEl) contentEl.scrollTop = contentEl.scrollHeight
+        }
+
+      } catch (err) {
+        console.error(err)
+        showToast('网络错误或执行中断')
+        textEl.innerHTML += '<br/>执行出错'
+      }
+    }
+    // 启动小猪跑动
+    startRun()
+  </script>
 </body>
+
 </html>

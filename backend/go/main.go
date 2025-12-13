@@ -205,6 +205,19 @@ func runShell(cmd string, env []string) error {
 	return c.Run()
 }
 
+func runShellStream(cmd string, env []string, stdout io.Writer) error {
+	c := exec.Command("bash", "-c", cmd)
+	if len(env) > 0 {
+		c.Env = append(os.Environ(), env...)
+	}
+
+	// Combine stdout and stderr
+	c.Stdout = stdout
+	c.Stderr = stdout
+
+	return c.Run()
+}
+
 func jsonResponse(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -689,29 +702,79 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logfile := filepath.Join(s.cfg.GANLogHome, fmt.Sprintf("webhook_hand--%s.log", hookTime))
+
+	// Create log file
+	f, err := os.Create(logfile)
+	if err != nil {
+		jsonResponse(w, http.StatusInternalServerError, map[string]string{"Status": "Error", "Message": "创建日志文件失败: " + err.Error()})
+		return
+	}
+	defer f.Close()
+
+	// Prepare streaming response
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	// Flush immediately to send headers
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+		// Wrap w with a flushing writer
+		w = &flushWriter{ResponseWriter: w}
+	}
+
+	// MultiWriter to write to both file and response
+	mw := io.MultiWriter(f, w)
+
+	// Construct command string for display/logging (without redirection)
 	fullCmd := strings.Join([]string{
 		strings.Join(baseEnv, " "),
-		cmd + " > " + logfile + " 2>&1",
+		cmd,
 	}, " ; ")
 
-	if err := runShell(fullCmd, nil); err != nil {
-		jsonResponse(w, http.StatusInternalServerError, map[string]string{"Status": "Error", "Message": err.Error()})
-		return
+	// Execute synchronously with streaming
+	// Note: runShellStream takes the *full command line* if passed to bash -c,
+	// but here we are constructing it. Ideally we pass the full string to bash -c.
+	// The original code successfully ran `fullCmd` which included redirection.
+	// Here `fullCmd` is just the env vars + script path + args.
+	if err := runShellStream(fullCmd, nil, mw); err != nil {
+		// Log error to stream too
+		fmt.Fprintf(mw, "\nExecution failed: %v\n", err)
 	}
 
 	logTxt := strings.TrimSuffix(logfile, ".log") + ".txt.log"
+	// We need to close 'f' or ensure content is flushed before reading it for cleanLog
+	f.Sync()
+	// Re-open for cleaning (or just rely on what was written)
+	// Note: writeCleanLog reads from src (logfile). Since f is deferred close, we might need to close it explicitly if we want to read it immediately?
+	// Actually, defer f.Close() happens after this function returns.
+	// But writeCleanLog opens the file itself.
+	// To be safe, we should probably close f before calling writeCleanLog, or assume os.ReadFile works on open files (linux usually fine).
+	// Better: close it now.
+	f.Close()
+
 	if err := writeCleanLog(logfile, logTxt); err != nil {
-		jsonResponse(w, http.StatusInternalServerError, map[string]string{"Status": "Error", "Message": "生成日志失败"})
-		return
+		// Cannot send JSON response as we already sent text stream.
+		// Just log to console
+		log.Printf("生成日志失败: %v", err)
+	} else {
+		if s.cfg.HandHookSendEmail && userEmail != "" {
+			sendMail := fmt.Sprintf("%s/tools/send_mail.sh --subject \"webhook_hand日志\" --content \"$(cat %s)\" %s",
+				s.cfg.GANCmdHome, logTxt, userEmail)
+			_ = runShell(sendMail, nil)
+		}
 	}
 
-	if s.cfg.HandHookSendEmail && userEmail != "" {
-		sendMail := fmt.Sprintf("%s/tools/send_mail.sh --subject \"webhook_hand日志\" --content \"$(cat %s)\" %s",
-			s.cfg.GANCmdHome, logTxt, userEmail)
-		_ = runShell(sendMail, nil)
-	}
+	// Response is already sent via stream.
+}
 
-	// 返回日志文件
-	w.Header().Set("Content-Type", "text/plain")
-	http.ServeFile(w, r, logTxt)
+type flushWriter struct {
+	http.ResponseWriter
+}
+
+func (fw *flushWriter) Write(p []byte) (int, error) {
+	n, err := fw.ResponseWriter.Write(p)
+	if f, ok := fw.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+	return n, err
 }
