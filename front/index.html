@@ -6,6 +6,7 @@
   <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
   <title>Document</title>
   <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+  <script src="https://cdn.staticfile.org/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style type="text/css">
     @font-face {
       font-family: 'cour';
@@ -33,7 +34,7 @@
     .meinv-bg {
       width: 100%;
       height: 100%;
-      background: url('../girl.jpg') no-repeat;
+      background: url('./girl.jpg') no-repeat;
       background-position: center top;
     }
     .text-content {
@@ -48,6 +49,47 @@
       text-align: center;
       color: rgb(191, 229, 235);
       font-size: 50px;
+    }
+    .login-status-icon {
+      display: none;
+      color: #00FF00;
+      font-size: 16px;
+      font-weight: bold;
+      margin-left: 10px;
+      vertical-align: bottom;
+      text-shadow: 0 0 3px rgba(0, 255, 0, 0.8), 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    .login-status-icon.show {
+      display: inline-block;
+    }
+    /* 移动端调整 */
+    @media only screen and (max-width: 750px) {
+      .login-status-icon {
+        font-size: 14px;
+        margin-left: 8px;
+      }
+    }
+    /* 猪猪侠 */
+    .pig-runner {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      width: 80px;
+      height: 80px;
+      cursor: pointer;
+      user-select: none;
+      transition: left 2s linear, top 2s linear, transform 0.3s ease;
+      z-index: 9;
+      object-fit: contain;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+    .pig-runner img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      image-rendering: auto;
     }
     select, input, textarea {
       font-family: fangsong;
@@ -171,12 +213,73 @@
       }
     }
     
+    /* 登录弹窗 */
+    .modal-mask {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal {
+      width: 320px;
+      background: #fefefe;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+      padding: 20px;
+      color: #333;
+      font-family: "Segoe UI", sans-serif;
+    }
+    .modal h3 {
+      margin: 0 0 12px;
+      text-align: center;
+      color: #444;
+    }
+    .modal .form-item {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .modal input {
+      width: 100%;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .modal .btn-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .modal button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .btn-cancel { background: #f0f0f0; color: #333; }
+    .btn-ok { background: #ffd84d; color: #3a2a00; }
   </style>
 </head>
 <body>
     <div class="meinv-bg"></div>
     <div class="text-content">
-      <h1>超级无敌棒棒糖</h1>
+      <div id="pig" class="pig-runner" title="点我登陆/查看状态">
+        <img src="./fly.webp" alt="猪猪侠" />
+      </div>
+      <h1>超级无敌棒棒糖<span id="loginStatusIcon" class="login-status-icon">✓</span></h1>
       <div class="cell-content">
         <div class="left-cell">
           <p class="cell require">
@@ -255,8 +358,164 @@
     </div>
     
   </div>
+  <!-- 登录弹窗 -->
+  <div id="modalMask" class="modal-mask">
+    <div class="modal">
+      <h3>登录一下</h3>
+      <div class="form-item">
+        <label>用户名</label>
+        <input id="loginUser" type="text" placeholder="例如 kevin" />
+      </div>
+      <div class="form-item">
+        <label>密码</label>
+        <input id="loginSec" type="password" placeholder="请输入密码" />
+      </div>
+      <div class="btn-row">
+        <button class="btn-cancel" id="loginCancel">取消</button>
+        <button class="btn-ok" id="loginOk">确定</button>
+      </div>
+    </div>
+  </div>
  <script>
+  // ------------- 状态 -------------
+  let isLoggedIn = false
+  let currentUser = ''
+  let currentToken = ''
+  let currentSec = ''
+
+  const pigEl = document.getElementById('pig')
+  const modalMask = document.getElementById('modalMask')
+  const loginUserEl = document.getElementById('loginUser')
+  const loginSecEl = document.getElementById('loginSec')
+  const loginStatusIcon = document.getElementById('loginStatusIcon')
+
+  // 更新登录状态图标
+  function updateLoginStatusIcon(show) {
+    if (!loginStatusIcon) return
+    if (show && isLoggedIn) {
+      loginStatusIcon.classList.add('show')
+    } else {
+      loginStatusIcon.classList.remove('show')
+    }
+  }
+
+  // 从本地恢复
+  ;(() => {
+    const saved = JSON.parse(localStorage.getItem('gan_login') || '{}')
+    if (saved.user && saved.token) {
+      isLoggedIn = true
+      currentUser = saved.user
+      currentToken = saved.token
+      currentSec = saved.sec || ''
+      updateLoginStatusIcon(true)
+    }
+  })()
+
+  // ------------- 猪猪侠跑动 -------------
+  let pigTimer = null
+  let targetX = 20
+  let targetY = 20
   
+  function movePig() {
+    const areaW = window.innerWidth - 100
+    const areaH = window.innerHeight - 120
+    // 设置新的目标位置
+    targetX = Math.max(10, Math.random() * areaW)
+    targetY = Math.max(10, Math.random() * areaH)
+    // 通过 CSS transition 平滑移动到目标位置
+    pigEl.style.left = targetX + 'px'
+    pigEl.style.top = targetY + 'px'
+    // 随机旋转和缩放，但变化更平滑
+    const scale = 0.9 + Math.random() * 0.2
+    const rotate = Math.random() * 20 - 10
+    pigEl.style.transform = `scale(${scale}) rotate(${rotate}deg)`
+  }
+  function startRun() {
+    if (pigTimer) return
+    movePig()
+    // 每2秒移动到新位置，与 CSS transition 时间匹配
+    pigTimer = setInterval(movePig, 2000)
+  }
+  function stopRun() {
+    if (pigTimer) {
+      clearInterval(pigTimer)
+      pigTimer = null
+    }
+  }
+  pigEl.addEventListener('mouseenter', stopRun)
+  pigEl.addEventListener('mouseleave', startRun)
+
+  pigEl.addEventListener('click', () => {
+    if (isLoggedIn) {
+      alert('你已登录，走开！')
+    } else {
+      openLogin()
+    }
+  })
+
+  // ------------- 登录弹窗 -------------
+  function openLogin() {
+    modalMask.style.display = 'flex'
+    loginUserEl.value = currentUser || ''
+    loginSecEl.value = ''
+    setTimeout(() => loginUserEl.focus(), 0)
+  }
+  function closeLogin() {
+    modalMask.style.display = 'none'
+  }
+  document.getElementById('loginCancel').onclick = closeLogin
+  // 回车键提交
+  loginSecEl.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      document.getElementById('loginOk').click()
+    }
+  })
+  document.getElementById('loginOk').onclick = function() {
+    const u = loginUserEl.value.trim()
+    const s = loginSecEl.value.trim()
+    if (!u || !s) {
+      alert('请填写用户名和密码')
+      return
+    }
+    // 计算 sha1(用户名+密码)，与后端密码生成工具保持一致
+    const secSha1 = CryptoJS.SHA1(u + s).toString()
+    // 调用后端接口验证用户名密码并获取token
+    $.ajax({
+      type: 'POST',
+      url: 'http://127.0.0.1:9527/get/token',
+      headers: {
+        user: u,
+        sec: secSha1
+      },
+      success: function (response) {
+        if (response.Status === 'Success' && response.Token) {
+          isLoggedIn = true
+          currentUser = u
+          currentToken = response.Token
+          currentSec = secSha1
+          localStorage.setItem('gan_login', JSON.stringify({user: u, token: response.Token, sec: secSha1}))
+          closeLogin()
+          updateLoginStatusIcon(true)
+        } else {
+          alert('登录失败：' + (response.Message || '未知错误'))
+        }
+      },
+      error: function (xhr) {
+        let msg = '登录失败'
+        if (xhr.responseJSON && xhr.responseJSON.Message) {
+          msg += '：' + xhr.responseJSON.Message
+        }
+        alert(msg)
+      }
+    })
+  }
+
+  // 点击遮罩关闭
+  modalMask.addEventListener('click', (e) => {
+    if (e.target === modalMask) closeLogin()
+  })
+
+  // ------------- 开干 -------------
   function start() {
     let doValue = $('#do option:selected').val()
     if (!doValue) return window.alert('请选择"干"')
@@ -266,6 +525,11 @@
 
     let projects = $('#projects').val()
     if (!projects) return window.alert('请输入项目列表')
+
+    if (!isLoggedIn) {
+      openLogin()
+      return
+    }
 
     $('#text').html('干ing....')
     $.ajax({
@@ -283,9 +547,7 @@
           projects: projects.split(/[\r\n]/)
       }),
       headers: {
-        token: '123456',
-        user: 'kevin',
-        sec: 'aabbcc1234'
+        token: currentToken || ''
       },
       contentType: 'application/json',
       success: function (response) {
@@ -301,6 +563,8 @@
       }
     });
   }
+  // 启动小猪跑动
+  startRun()
  </script>
 </body>
 </html>
