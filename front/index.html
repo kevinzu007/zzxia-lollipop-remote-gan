@@ -9,6 +9,7 @@
   <title>Document</title>
   <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
   <script src="https://cdn.staticfile.org/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="./config.js"></script>
   <style type="text/css">
     @font-face {
       font-family: 'cour';
@@ -281,6 +282,10 @@
         height: inherit;
       }
 
+      .left-cell .cell:last-child {
+        margin-bottom: 0;
+      }
+
       .textarea-cell,
       .textarea-cell textarea {
         height: 100%;
@@ -299,6 +304,31 @@
 
       #text {
         padding: 20px 40px;
+      }
+
+      .form-container {
+        width: max-content;
+        margin: 0 auto;
+      }
+
+      .cell-content {
+        /* margin: 0 auto; removed */
+      }
+
+      .extra-cell {
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      #extra {
+        width: auto;
+        /* Will take remaining space in flex container */
+        flex: 1;
+      }
+
+      /* override generic input width for extra */
+      .extra-cell .cell input {
+        width: auto;
       }
     }
 
@@ -384,76 +414,79 @@
       <img src="./fly.webp" alt="猪猪侠" />
     </div>
     <h1>超级无敌棒棒糖<span id="loginStatusIcon" class="login-status-icon">✓</span></h1>
-    <div class="cell-content">
-      <div class="left-cell">
-        <p class="cell require">
-          <label>1、干</label>
-          <select id="do">
-            <option value="" style="display:none"></option>
-            <option value="build">build</option>
-            <option value="deploy">deploy</option>
-            <option value="gogogo">gogogo</option>
-          </select>
-        </p>
+    <div class="form-container">
+      <div class="cell-content">
+        <div class="left-cell">
+          <p class="cell require">
+            <label>1、干</label>
+            <select id="do">
+              <option value="" style="display:none"></option>
+              <option value="build">build</option>
+              <option value="deploy">deploy</option>
+              <option value="gogogo">gogogo</option>
+            </select>
+          </p>
 
-        <p class="cell require">
-          <label>2、运行环境</label>
-          <select id="env">
-            <option value="" style="display:none"></option>
-            <option value="dev">dev</option>
-            <option value="stag">stag</option>
-            <option value="prod">prod</option>
-          </select>
-        </p>
+          <p class="cell require">
+            <label>2、运行环境</label>
+            <select id="env"></select>
+          </p>
 
-        <p class="cell">
-          <label>3、代码分支</label>
-          <input id="branch" type="text">
-        </p>
+          <p class="cell">
+            <label>3、代码分支</label>
+            <input id="branch" type="text">
+          </p>
 
-        <p class="cell">
-          <label>4、发布版本</label>
-          <input id="version" type="text">
-        </p>
+          <p class="cell">
+            <label>4、发布版本</label>
+            <input id="version" type="text">
+          </p>
 
-        <p class="cell">
-          <label>5、灰度发布</label>
-          <select id="gray">
-            <option value="no">no</option>
-            <option value="yes">yes</option>
-          </select>
-        </p>
+          <p class="cell">
+            <label>5、灰度发布</label>
+            <select id="gray">
+              <option value="no">no</option>
+              <option value="yes">yes</option>
+            </select>
+          </p>
 
-        <p class="cell">
-          <label>6、跳过测试</label>
-          <select id="skiptest">
-            <option value="no">no</option>
-            <option value="yes">yes</option>
-          </select>
-        </p>
+          <p class="cell">
+            <label>6、跳过测试</label>
+            <select id="skiptest">
+              <option value="no">no</option>
+              <option value="yes">yes</option>
+            </select>
+          </p>
 
-        <p class="cell">
-          <label>7、强制构建</label>
-          <select id="force">
-            <option value="no">no</option>
-            <option value="yes">yes</option>
-          </select>
-        </p>
+          <p class="cell">
+            <label>7、强制构建</label>
+            <select id="force">
+              <option value="no">no</option>
+              <option value="yes">yes</option>
+            </select>
+          </p>
 
-        <p class="cell last-child">
-          <label>8、项目类别</label>
-          <select id="category">
-            <option value="" style="display:none"></option>
-            <option value="java">java</option>
-            <option value="node">node</option>
-            <option value="dockerfile">dockerfile</option>
-          </select>
-        </p>
+          <p class="cell">
+            <label>8、项目类别</label>
+            <select id="category">
+              <option value="" style="display:none"></option>
+              <option value="java">java</option>
+              <option value="node">node</option>
+              <option value="dockerfile">dockerfile</option>
+            </select>
+          </p>
+        </div>
+        <div class="right-cell">
+          <p class="cell require textarea-cell">
+            <label>9、项目列表</label>
+            <textarea id="projects" placeholder="一个项目一行"></textarea>
+          </p>
+        </div>
       </div>
-      <div class="right-cell">
-        <p class="cell require textarea-cell">
-          <label>9、项目列表</label>
-          <textarea id="projects" cols="30" rows="10" placeholder="一个项目一行"></textarea>
+      <div class="extra-cell">
+        <p class="cell">
+          <label>A、附加参数</label>
+          <input id="extra" type="text" placeholder="shell附加参数">
         </p>
       </div>
     </div>
@@ -465,7 +498,7 @@
   <!-- 登录弹窗 -->
   <div id="modalMask" class="modal-mask">
     <div class="modal">
-      <h3>登录一下</h3>
+      <h3>你谁啊？</h3>
       <div class="form-item">
         <label>用户名</label>
         <input id="loginUser" type="text" placeholder="例如 kevin" />
@@ -499,6 +532,39 @@
     const loginStatusIcon = document.getElementById('loginStatusIcon')
     const toast = document.getElementById('toast')
     const toastMessage = toast.querySelector('.toast-message')
+
+    // ------------- 初始化配置 -------------
+    let currentBackendUrl = ''
+
+    function initEnv() {
+      const envSelect = document.getElementById('env')
+      if (!window.ganConfig || !window.ganConfig.envs) return
+
+      envSelect.innerHTML = ''
+      window.ganConfig.envs.forEach((item, index) => {
+        const opt = document.createElement('option')
+        opt.value = index // Use index to map back to config
+        opt.textContent = item.name
+        envSelect.appendChild(opt)
+      })
+
+      // Default select first
+      if (window.ganConfig.envs.length > 0) {
+        currentBackendUrl = window.ganConfig.envs[0].url
+      }
+
+      // Update backend url on change
+      envSelect.addEventListener('change', (e) => {
+        const idx = e.target.value
+        if (window.ganConfig.envs[idx]) {
+          currentBackendUrl = window.ganConfig.envs[idx].url
+          // clear login status when switching env if needed? 
+          // For now let's keep it simple, user might need to relogin if token invalid
+        }
+      })
+    }
+
+    initEnv()
 
     // 显示提示消息
     function showToast(message, duration = 3000) {
@@ -602,7 +668,7 @@
       // 调用后端接口验证用户名密码并获取token
       $.ajax({
         type: 'POST',
-        url: 'http://127.0.0.1:9527/get/token',
+        url: currentBackendUrl + '/get/token',
         headers: {
           user: u,
           sec: secSha1
@@ -650,6 +716,14 @@
       let projects = $('#projects').val()
       if (!projects) return showToast('请输入项目列表')
 
+      // Resolve Env config
+      const envIdx = $('#env').val()
+      const envConfig = window.ganConfig.envs[envIdx]
+      if (!envConfig) return showToast('配置错误')
+
+      const targetUrl = envConfig.url
+      const realEnvValue = envConfig.value
+
       if (!isLoggedIn) {
         openLogin()
         return
@@ -659,7 +733,7 @@
       textEl.innerHTML = '干ing....<br/>'
 
       try {
-        const response = await fetch('http://127.0.0.1:9527/hook/hand', {
+        const response = await fetch(targetUrl + '/hook/hand', {
           method: 'POST',
           headers: {
             'token': currentToken || '',
@@ -667,13 +741,14 @@
           },
           body: JSON.stringify({
             do: doValue,
-            env: env,
+            env: realEnvValue,
             branch: $('#branch').val(),
             version: $('#version').val(),
             gray: $('#gray option:selected').val() || '',
             skiptest: $('#skiptest option:selected').val() || '',
             force: $('#force option:selected').val() || '',
             category: $('#category option:selected').val() || '',
+            extra: $('#extra').val() || '',
             projects: projects.split(/[\r\n]/)
           })
         })
