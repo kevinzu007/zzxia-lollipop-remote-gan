@@ -9,6 +9,35 @@
   <title>Document</title>
   <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
   <script src="https://cdn.staticfile.org/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <!-- Project Selection Modal -->
+  <div id="projectModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>选择项目</h3>
+        <span class="close-btn" onclick="closeProjectModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <table class="project-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">选择</th>
+              <th style="width: 50px;">序号</th>
+              <th onclick="sortProjects('category')">项目类别 ↕</th>
+              <th onclick="sortProjects('name')">项目名称 ↕</th>
+            </tr>
+          </thead>
+          <tbody id="projectTableBody">
+            <!-- Rows populated by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeProjectModal()">取消</button>
+        <button class="btn btn-primary" onclick="confirmProjectSelection()">确定</button>
+      </div>
+    </div>
+  </div>
+
   <script src="./config.js"></script>
   <style type="text/css">
     @font-face {
@@ -206,7 +235,7 @@
     }
 
     .textarea-cell {
-      align-items: flex-start;
+      align-items: baseline;
     }
 
     .gan-btn {
@@ -423,6 +452,209 @@
       pointer-events: none;
       filter: grayscale(1);
     }
+
+    /* Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 50% !important;
+      min-width: 350px;
+      max-width: 1000px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .close-btn {
+      cursor: pointer;
+      font-size: 24px;
+      color: #999;
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+
+    .project-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .project-table th,
+    .project-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    .project-table th {
+      background-color: #f2f2f2;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .project-table th:hover {
+      background-color: #e0e0e0;
+    }
+
+    .project-table input[type="checkbox"] {
+      width: auto;
+      min-height: auto;
+      cursor: pointer;
+    }
+
+    /* Column 1: Selection */
+    .project-table th:nth-child(1),
+    .project-table td:nth-child(1) {
+      width: 50px;
+      text-align: center;
+    }
+
+    /* Column 2: Index */
+    .project-table th:nth-child(2),
+    .project-table td:nth-child(2) {
+      width: 50px;
+      text-align: center;
+    }
+
+    /* Column 3: Category */
+    .project-table th:nth-child(3),
+    .project-table td:nth-child(3) {
+      width: 120px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .textarea-cell {
+      align-items: baseline;
+    }
+
+
+
+
+
+    @media screen and (max-width: 768px) {
+      .modal-content {
+        width: 95%;
+      }
+    }
+
+    /* ===== 项目列表排版修正 (Overlay Method) ===== */
+    .project-list-cell {
+      align-items: flex-start;
+    }
+
+    .project-list-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .project-list-wrapper textarea {
+      width: 100%;
+      height: 100% !important;
+      padding-top: 40px !important;
+      /* Make room for button */
+      box-sizing: border-box;
+      margin-top: 0;
+      resize: none;
+    }
+
+    /* Button overlays in the padding area */
+    .lazy-overlay {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      z-index: 2;
+      margin: 0;
+      /* Button Style */
+      display: inline-block;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      text-decoration: none;
+      background: #007bff;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .lazy-overlay:hover {
+      background: #0056b3;
+    }
+
+    /* PC Specific Widths */
+    @media only screen and (min-width: 760px) {
+
+      #category,
+      .project-list-wrapper {
+        width: 250px;
+        /* Match standard input width */
+      }
+
+      /* Reset other wrappers/margins if needed */
+      .project-list-wrapper {
+        flex: none;
+        /* Don't flex grow, stick to width */
+      }
+    }
   </style>
 </head>
 
@@ -494,10 +726,16 @@
             <select id="category"></select>
           </p>
 
-          <p class="cell require-one textarea-cell">
+          <div class="cell require-one textarea-cell project-list-cell">
             <label>9、项目列表</label>
-            <textarea id="projects" placeholder="一个项目一行"></textarea>
-          </p>
+
+            <div class="project-list-wrapper">
+              <textarea id="projects" placeholder="一个项目一行"></textarea>
+              <span class="lazy-btn lazy-overlay" onclick="openProjectModal()">
+                【 我知道你很懒，来啊！来点我呀！】
+              </span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="extra-cell">
@@ -512,6 +750,35 @@
   </div>
 
   </div>
+  <!-- Project Selection Modal -->
+  <div id="projectModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>选择项目</h3>
+        <span class="close-btn" onclick="closeProjectModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <table class="project-table">
+          <thead>
+            <tr>
+              <th>选择</th>
+              <th>序号</th>
+              <th onclick="sortProjects('category')">项目类别 ↕</th>
+              <th onclick="sortProjects('name')">项目名称 ↕</th>
+            </tr>
+          </thead>
+          <tbody id="projectTableBody">
+            <!-- Rows populated by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeProjectModal()">取消</button>
+        <button class="btn btn-primary" onclick="confirmProjectSelection()">确定</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 登录弹窗 -->
   <div id="modalMask" class="modal-mask">
     <div class="modal">
@@ -675,6 +942,12 @@
       const rotate = Math.random() * 20 - 10
       pigEl.style.transform = `scale(${scale}) rotate(${rotate}deg)`
     }
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    }
+
+
+
     function startRun() {
       if (pigTimer) return
       movePig()
@@ -763,6 +1036,99 @@
     modalMask.addEventListener('click', (e) => {
       if (e.target === modalMask) closeLogin()
     })
+
+    // ------------- Project Modal Logic -------------
+    let currentSort = { field: 'name', asc: true } // Default sort
+
+    function openProjectModal() {
+      const modal = document.getElementById('projectModal')
+      modal.style.display = 'flex'
+      renderProjectTable()
+    }
+
+    function closeProjectModal() {
+      document.getElementById('projectModal').style.display = 'none'
+    }
+
+    function sortProjects(field) {
+      if (currentSort.field === field) {
+        currentSort.asc = !currentSort.asc
+      } else {
+        currentSort.field = field
+        currentSort.asc = true
+      }
+      renderProjectTable()
+    }
+
+    function renderProjectTable() {
+      const list = (window.ganConfig.projectList || []).slice() // Copy array to avoid mutating config
+      const tbody = document.getElementById('projectTableBody')
+
+      // Sort logic
+      list.sort((a, b) => {
+        let valA = (a[currentSort.field] || '').toString().toLowerCase()
+        let valB = (b[currentSort.field] || '').toString().toLowerCase()
+        if (valA < valB) return currentSort.asc ? -1 : 1
+        if (valA > valB) return currentSort.asc ? 1 : -1
+        return 0
+      })
+
+      tbody.innerHTML = ''
+      list.forEach((item, index) => {
+        const tr = document.createElement('tr')
+        tr.innerHTML = `
+          <td><input type="checkbox" name="projectSelect" value="${item.name}"></td>
+          <td>${index + 1}</td>
+          <td>${item.category}</td>
+          <td>${item.name}</td>
+        `
+        // Click row toggles checkbox
+        tr.addEventListener('click', (e) => {
+          if (e.target.tagName !== 'INPUT') {
+            const cb = tr.querySelector('input')
+            cb.checked = !cb.checked
+          }
+        })
+        tbody.appendChild(tr)
+      })
+    }
+
+    function confirmProjectSelection() {
+      const checkboxes = document.querySelectorAll('input[name="projectSelect"]:checked')
+      const selectedProjects = Array.from(checkboxes).map(cb => cb.value)
+
+      if (selectedProjects.length > 0) {
+        const textArea = document.getElementById('projects')
+        let currentText = textArea.value.trim()
+        if (currentText) {
+          textArea.value = currentText + '\n' + selectedProjects.join('\n')
+        } else {
+          textArea.value = selectedProjects.join('\n')
+        }
+      }
+      closeProjectModal()
+    }
+
+    // Close modal on outside click
+    window.onclick = function (event) {
+      const modal = document.getElementById('projectModal')
+      if (event.target == modal) {
+        closeProjectModal()
+      } else if (event.target == modalMask) { // Keep existing login mask close logic
+        closeLogin()
+      }
+    }
+
+    // Existing mask click listener was: modalMask.addEventListener('click', ...)
+    // Replacing window.onclick might override other things if not careful.
+    // The previous window.onclick wasn't set?
+    // Let's rely on event listeners for specific elements where possible, or keep window for modal overlay.
+    // The login mask uses `modalMask.addEventListener`.
+    // So for project modal, let's use:
+    document.getElementById('projectModal').addEventListener('click', (e) => {
+      if (e.target.id === 'projectModal') closeProjectModal()
+    })
+
 
     // ------------- 开干 -------------
     async function start() {
