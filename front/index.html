@@ -197,6 +197,14 @@
       color: #e9f539;
     }
 
+    .require-one label::after {
+      content: '①';
+      color: #e9f539;
+      font-size: 50%;
+      vertical-align: top;
+      font-weight: bold;
+    }
+
     .textarea-cell {
       align-items: flex-start;
     }
@@ -280,10 +288,14 @@
 
       .right-cell {
         height: inherit;
+        display: flex;
+        flex-direction: column;
       }
 
-      .left-cell .cell:last-child {
-        margin-bottom: 0;
+
+      .textarea-cell {
+        flex: 1;
+        height: auto;
       }
 
       .textarea-cell,
@@ -317,7 +329,6 @@
 
       .extra-cell {
         width: 100%;
-        margin-top: 20px;
       }
 
       #extra {
@@ -404,6 +415,14 @@
       background: #ffd84d;
       color: #3a2a00;
     }
+
+    .disabled-cell {
+      opacity: 0.5;
+      background-color: rgba(255, 255, 255, 0.5) !important;
+      color: #333;
+      pointer-events: none;
+      filter: grayscale(1);
+    }
   </style>
 </head>
 
@@ -466,18 +485,16 @@
             </select>
           </p>
 
-          <p class="cell">
-            <label>8、项目类别</label>
-            <select id="category">
-              <option value="" style="display:none"></option>
-              <option value="java">java</option>
-              <option value="node">node</option>
-              <option value="dockerfile">dockerfile</option>
-            </select>
+          </select>
           </p>
         </div>
         <div class="right-cell">
-          <p class="cell require textarea-cell">
+          <p class="cell require-one">
+            <label>8、项目类别</label>
+            <select id="category"></select>
+          </p>
+
+          <p class="cell require-one textarea-cell">
             <label>9、项目列表</label>
             <textarea id="projects" placeholder="一个项目一行"></textarea>
           </p>
@@ -538,6 +555,35 @@
 
     function initEnv() {
       const envSelect = document.getElementById('env')
+      const doSelect = document.getElementById('do')
+
+      // Dynamic form state
+      function updateFormState() {
+        const doValue = doSelect.value
+        // Fields to disable when build: 4 (version), 5 (gray)
+        const versionInput = document.getElementById('version')
+        const graySelect = document.getElementById('gray')
+        const versionCell = versionInput.parentElement // .cell
+        const grayCell = graySelect.parentElement // .cell
+
+        if (doValue === 'build') {
+          versionInput.classList.add('disabled-cell')
+          graySelect.classList.add('disabled-cell')
+          versionInput.disabled = true
+          graySelect.disabled = true
+          // Optional: clear values? Maybe keeping them is better for UX if they switch back
+        } else {
+          versionInput.classList.remove('disabled-cell')
+          graySelect.classList.remove('disabled-cell')
+          versionInput.disabled = false
+          graySelect.disabled = false
+        }
+      }
+
+      doSelect.addEventListener('change', updateFormState)
+      // Call once
+      updateFormState()
+
       if (!window.ganConfig || !window.ganConfig.envs) return
 
       envSelect.innerHTML = ''
@@ -562,6 +608,19 @@
           // For now let's keep it simple, user might need to relogin if token invalid
         }
       })
+
+      // Populate categories
+      if (window.ganConfig.categories) {
+        const catSelect = document.getElementById('category')
+        catSelect.innerHTML = ''
+        window.ganConfig.categories.forEach(cat => {
+          const opt = document.createElement('option')
+          opt.value = cat
+          opt.textContent = cat || '' // Display empty for empty string (or user might want a label like 'None'?)
+          // User said "Empty option exists", effectively <option value=""></option>
+          catSelect.appendChild(opt)
+        })
+      }
     }
 
     initEnv()
@@ -713,8 +772,18 @@
       let env = $('#env option:selected').val()
       if (!env) return showToast('请选择运行环境')
 
-      let projects = $('#projects').val()
-      if (!projects) return showToast('请输入项目列表')
+      // Clean projects: split -> trim -> remove empty -> remove all internal spaces
+      let projectsRaw = $('#projects').val() || ''
+      let projectList = projectsRaw.split(/[\r\n]+/)
+        .map(p => p.trim().replace(/\s+/g, ''))
+        .filter(p => p.length > 0)
+
+      let category = $('#category option:selected').val()
+
+      // Validate: at least one of category or projects
+      if (!category && projectList.length === 0) {
+        return showToast('请选择"项目类别" 或 输入"项目列表" (二选一)')
+      }
 
       // Resolve Env config
       const envIdx = $('#env').val()
@@ -749,7 +818,7 @@
             force: $('#force option:selected').val() || '',
             category: $('#category option:selected').val() || '',
             extra: $('#extra').val() || '',
-            projects: projects.split(/[\r\n]/)
+            projects: projectList
           })
         })
 
