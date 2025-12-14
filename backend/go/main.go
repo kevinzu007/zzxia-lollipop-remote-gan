@@ -579,7 +579,8 @@ type handBody struct {
 	Force    string   `json:"force"`
 	Verbose  string   `json:"verbose"`
 	Gray     string   `json:"gray"`
-	Version  string   `json:"release-version"`
+	Version  string   `json:"version"`
+	Extra    string   `json:"extra"`
 	Projects []string `json:"projects"`
 }
 
@@ -687,6 +688,9 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 		}
 		if body.Category != "" {
 			cmd += " --category " + body.Category
+		}
+		if body.Extra != "" {
+			cmd += " " + body.Extra
 		}
 		if len(body.Projects) > 0 {
 			cmd += " " + strings.Join(body.Projects, " ")
