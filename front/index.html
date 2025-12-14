@@ -655,6 +655,70 @@
         /* Don't flex grow, stick to width */
       }
     }
+
+    /* Mobile Fixes */
+    @media only screen and (max-width: 759px) {
+      .modal-content {
+        width: 55% !important;
+        min-width: 300px !important;
+        /* Allow it to be smaller than 350px */
+      }
+
+      /* Reduce Category width */
+      /* Reduce padding on mobile */
+      .project-table th,
+      .project-table td {
+        padding: 5px;
+      }
+
+      /* Reduce Select/Index columns to 3 chars */
+      .project-table th:nth-child(1),
+      .project-table td:nth-child(1),
+      .project-table th:nth-child(2),
+      .project-table td:nth-child(2) {
+        width: 2em;
+        max-width: 2em;
+        white-space: normal;
+        text-align: center;
+      }
+
+      /* Category Column: Header wraps, Data truncates */
+      .project-table th:nth-child(3) {
+        width: 5em;
+        max-width: 6em;
+        white-space: normal;
+        vertical-align: middle;
+      }
+
+      .project-table td:nth-child(3) {
+        width: 5em;
+        max-width: 6em;
+        white-space: normal;
+        word-break: break-all;
+      }
+
+      /* Give remaining width to Name */
+      .project-table th:nth-child(4),
+      .project-table td:nth-child(4) {
+        width: auto;
+        white-space: normal;
+        word-break: break-all;
+      }
+
+      .extra-cell {
+        padding: 0 20px;
+      }
+
+      .project-list-wrapper {
+        width: 200px;
+        height: auto;
+      }
+
+      .project-list-wrapper textarea {
+        height: 150px !important;
+        width: 100%;
+      }
+    }
   </style>
 </head>
 
