@@ -254,20 +254,37 @@
     #text {
       width: 100%;
       overflow-x: auto;
-      white-space: nowrap;
+      white-space: pre-wrap;
+      word-wrap: break-word;
       box-sizing: border-box;
     }
 
     /* 移动端样式 */
     @media only screen and (max-width: 750px) {
+      .form-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
       h1 {
         font-size: 25px;
         margin: 30px 20px;
       }
 
       .cell-content {
-        padding: 0 20px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
+
+      .left-cell,
+      .right-cell,
+      .extra-cell {
+        width: max-content;
+      }
+
 
       .cell {
         margin-bottom: 10px;
