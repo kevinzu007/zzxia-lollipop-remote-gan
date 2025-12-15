@@ -254,9 +254,33 @@
     #text {
       width: 100%;
       overflow-x: auto;
+      box-sizing: border-box;
+      font-family: 'cour', monospace;
+      line-height: 1.5;
+    }
+
+    .log-line {
+      display: flex;
       white-space: pre-wrap;
       word-wrap: break-word;
-      box-sizing: border-box;
+      word-break: break-all;
+      overflow-wrap: anywhere;
+    }
+
+    .line-number {
+      flex-shrink: 0;
+      width: 50px;
+      text-align: right;
+      padding-right: 10px;
+      color: rgba(255, 255, 255, 0.5);
+      user-select: none;
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      margin-right: 10px;
+    }
+
+    .line-content {
+      flex: 1;
+      min-width: 0;
     }
 
     /* 移动端样式 */
@@ -1242,7 +1266,19 @@
       }
 
       const textEl = document.getElementById('text')
-      textEl.innerHTML = '干ing....<br/>'
+      textEl.innerHTML = ''
+      let lineNumber = 0
+      let currentLineContent = ''
+
+      function addLine(content) {
+        lineNumber++
+        const lineDiv = document.createElement('div')
+        lineDiv.className = 'log-line'
+        lineDiv.innerHTML = `<span class="line-number">${lineNumber}</span><span class="line-content">${content}</span>`
+        textEl.appendChild(lineDiv)
+      }
+
+      addLine('干ing....')
 
       try {
         const response = await fetch(targetUrl + '/hook/hand', {
@@ -1273,7 +1309,7 @@
           } catch (e) {
             showToast('干失败了：' + (errText || response.statusText))
           }
-          textEl.innerHTML += '<br/>请求失败'
+          addLine('请求失败')
           return
         }
 
@@ -1295,20 +1331,36 @@
           // Remove ANSI codes
           chunk = chunk.replace(/\[.*?m/g, '')
 
-          // Formatting: spaces to &nbsp;, newlines to <br/>
-          chunk = chunk.replace(/ /g, '&nbsp;').replace(/[\r\n]/g, '<br/>')
+          // Process chunk and add to current line
+          currentLineContent += chunk
 
-          textEl.insertAdjacentHTML('beforeend', chunk)
+          // Split by newlines and process
+          const lines = currentLineContent.split(/[\r\n]/)
+
+          // All but the last element are complete lines
+          for (let i = 0; i < lines.length - 1; i++) {
+            const lineText = lines[i].replace(/ /g, '&nbsp;')
+            addLine(lineText || '&nbsp;')
+          }
+
+          // Keep the last incomplete line for next chunk
+          currentLineContent = lines[lines.length - 1]
 
           // Auto scroll
           const contentEl = document.querySelector('.text-content')
           if (contentEl) contentEl.scrollTop = contentEl.scrollHeight
         }
 
+        // Add any remaining content as final line
+        if (currentLineContent) {
+          const lineText = currentLineContent.replace(/ /g, '&nbsp;')
+          addLine(lineText)
+        }
+
       } catch (err) {
         console.error(err)
         showToast('网络错误或执行中断')
-        textEl.innerHTML += '<br/>执行出错'
+        addLine('执行出错')
       }
     }
     // 启动小猪跑动
