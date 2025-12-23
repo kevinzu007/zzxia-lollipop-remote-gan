@@ -770,18 +770,18 @@
       <div class="cell-content">
         <div class="left-cell">
           <p class="cell require">
-            <label>1、干</label>
+            <label>1、运行环境</label>
+            <select id="env"></select>
+          </p>
+
+          <p class="cell require">
+            <label>2、干</label>
             <select id="do">
               <option value="" style="display:none"></option>
               <option value="build">build</option>
               <option value="deploy">deploy</option>
               <option value="gogogo">gogogo</option>
             </select>
-          </p>
-
-          <p class="cell require">
-            <label>2、运行环境</label>
-            <select id="env"></select>
           </p>
 
           <p class="cell">
@@ -971,9 +971,18 @@
       envSelect.addEventListener('change', (e) => {
         const idx = e.target.value
         if (window.ganConfig.envs[idx]) {
-          currentBackendUrl = window.ganConfig.envs[idx].url
-          // clear login status when switching env if needed? 
-          // For now let's keep it simple, user might need to relogin if token invalid
+          const newUrl = window.ganConfig.envs[idx].url
+
+          // 如果切换了环境，清除登录状态
+          if (currentBackendUrl && newUrl !== currentBackendUrl) {
+            isLoggedIn = false
+            currentToken = ''
+            localStorage.removeItem('gan_login')
+            updateLoginStatusIcon(false)
+            showToast('已切换环境，请重新登录')
+          }
+
+          currentBackendUrl = newUrl
         }
       })
 
@@ -1012,14 +1021,13 @@
       }
     }
 
-    // 从本地恢复
+    // 从本地恢复登录状态
     ; (() => {
       const saved = JSON.parse(localStorage.getItem('gan_login') || '{}')
       if (saved.user && saved.token) {
         isLoggedIn = true
         currentUser = saved.user
         currentToken = saved.token
-        currentSec = saved.sec || ''
         updateLoginStatusIcon(true)
       }
     })()
@@ -1098,7 +1106,7 @@
       }
       // 计算 sha1(用户名+密码)，与后端密码生成工具保持一致
       const secSha1 = CryptoJS.SHA1(u + s).toString()
-      // 调用后端接口验证用户名密码并获取token
+      // 调用后端接口验证用户名密码并获取 JWT token
       $.ajax({
         type: 'POST',
         url: currentBackendUrl + '/get/token',
@@ -1111,10 +1119,10 @@
             isLoggedIn = true
             currentUser = u
             currentToken = response.Token
-            currentSec = secSha1
-            localStorage.setItem('gan_login', JSON.stringify({ user: u, token: response.Token, sec: secSha1 }))
+            localStorage.setItem('gan_login', JSON.stringify({ user: u, token: response.Token }))
             closeLogin()
             updateLoginStatusIcon(true)
+            showToast('登录成功！')
           } else {
             showToast('登录失败：' + (response.Message || '未知错误'))
           }
@@ -1284,8 +1292,8 @@
         const response = await fetch(targetUrl + '/hook/hand', {
           method: 'POST',
           headers: {
-            'token': currentToken || '',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'token': currentToken || ''  // 通过 Header 发送 Token
           },
           body: JSON.stringify({
             do: doValue,

@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/cors"
 	"gopkg.in/yaml.v3"
 )
@@ -31,7 +32,7 @@ type Config struct {
 	GANLogHome           string
 	GANRunEnv            string
 	UserDBFile           string
-	UserTokenFile        string
+	UserTokenFile        string // 已废弃，保留以兼容
 	GitlabSecretToken    string
 	GitlabCommitEnvCheck bool
 	GitlabHookSendEmail  bool
@@ -39,7 +40,24 @@ type Config struct {
 	XZZXiaSignCheck      bool
 	XZZXiaSignSecret     string
 	ListenAddr           string
+	// JWT 配置
+	JWTSecret          string
+	JWTExpirationHours int
+	// HTTPS 配置
+	EnableHTTPS bool
+	TLSCertFile string
+	TLSKeyFile  string
+	// CORS 配置
+	EnableStrictCORS   bool
+	CORSAllowedOrigins []string
+	// Cookie 配置
+	UseCookieAuth bool
+	// 调试模式
+	DebugMode bool
 }
+
+// 全局调试标志
+var debugMode bool
 
 // loadYAMLConfig reads a YAML file into a string map (all values treated as string).
 func loadYAMLConfig(path string) (map[string]string, error) {
@@ -69,9 +87,24 @@ func loadConfig() Config {
 		"X_ZZXIA_SIGN_CHECK":          "NO",
 		"X_ZZXIA_SIGN_SECRET":         "setYourselfSigncharStringHere",
 		"LISTEN_ADDR":                 ":9527",
+		// JWT 配置
+		"JWT_SECRET":           "your-very-secure-random-secret-key-change-me-please",
+		"JWT_EXPIRATION_HOURS": "8",
+		// HTTPS 配置
+		"ENABLE_HTTPS":  "NO",
+		"TLS_CERT_FILE": "",
+		"TLS_KEY_FILE":  "",
+		// CORS 配置
+		"ENABLE_STRICT_CORS":   "NO",
+		"CORS_ALLOWED_ORIGINS": "https://yourdomain.com,http://localhost:3000",
+		// Cookie 配置
+		"USE_COOKIE_AUTH": "YES",
+		// 调试模式
+		"DEBUG_MODE": "NO",
 	}
 
 	// Load YAML (optional). Default path: ../config.yaml relative to go dir; override by CONFIG_FILE env.
+	yamlConfig := map[string]string{}
 	configFile := os.Getenv("CONFIG_FILE")
 	if configFile == "" {
 		configFile = "../config.yaml"
@@ -79,15 +112,22 @@ func loadConfig() Config {
 	if yamlMap, err := loadYAMLConfig(configFile); err == nil {
 		for k, v := range yamlMap {
 			if strings.TrimSpace(v) != "" {
-				defaults[k] = v
+				yamlConfig[k] = v
 			}
 		}
 	}
 
-	envOrValue := func(key string) string {
+	// 配置优先级: YAML 配置 > 环境变量 > 默认值
+	getValue := func(key string) string {
+		// 1. 优先使用 YAML 配置
+		if v, ok := yamlConfig[key]; ok && v != "" {
+			return v
+		}
+		// 2. 其次使用环境变量
 		if v := os.Getenv(key); v != "" {
 			return v
 		}
+		// 3. 最后使用默认值
 		return defaults[key]
 	}
 
@@ -96,19 +136,51 @@ func loadConfig() Config {
 		return v == "YES" || v == "TRUE" || v == "1"
 	}
 
+	toInt := func(v string, defaultVal int) int {
+		if i, err := strconv.Atoi(v); err == nil {
+			return i
+		}
+		return defaultVal
+	}
+
+	// Parse CORS allowed origins
+	corsOrigins := []string{}
+	originsStr := getValue("CORS_ALLOWED_ORIGINS")
+	if originsStr != "" {
+		for _, origin := range strings.Split(originsStr, ",") {
+			if trimmed := strings.TrimSpace(origin); trimmed != "" {
+				corsOrigins = append(corsOrigins, trimmed)
+			}
+		}
+	}
+
 	return Config{
-		GANCmdHome:           envOrValue("GAN_CMD_HOME"),
-		GANLogHome:           envOrValue("GAN_LOG_HOME"),
-		GANRunEnv:            envOrValue("GAN_RUN_ENV"),
-		UserDBFile:           envOrValue("USER_DB_FILE"),
-		UserTokenFile:        envOrValue("USER_TOKEN_FILE"),
-		GitlabSecretToken:    envOrValue("GITLAB_SECRET_TOKEN"),
-		GitlabCommitEnvCheck: toBool(envOrValue("GITLAB_GIT_COMMIT_ENV_CHECK")),
-		GitlabHookSendEmail:  toBool(envOrValue("GITLAB_HOOK_SEND_EMAIL")),
-		HandHookSendEmail:    toBool(envOrValue("HAND_HOOK_SEND_EMAIL")),
-		XZZXiaSignCheck:      toBool(envOrValue("X_ZZXIA_SIGN_CHECK")),
-		XZZXiaSignSecret:     envOrValue("X_ZZXIA_SIGN_SECRET"),
-		ListenAddr:           envOrValue("LISTEN_ADDR"),
+		GANCmdHome:           getValue("GAN_CMD_HOME"),
+		GANLogHome:           getValue("GAN_LOG_HOME"),
+		GANRunEnv:            getValue("GAN_RUN_ENV"),
+		UserDBFile:           getValue("USER_DB_FILE"),
+		UserTokenFile:        getValue("USER_TOKEN_FILE"),
+		GitlabSecretToken:    getValue("GITLAB_SECRET_TOKEN"),
+		GitlabCommitEnvCheck: toBool(getValue("GITLAB_GIT_COMMIT_ENV_CHECK")),
+		GitlabHookSendEmail:  toBool(getValue("GITLAB_HOOK_SEND_EMAIL")),
+		HandHookSendEmail:    toBool(getValue("HAND_HOOK_SEND_EMAIL")),
+		XZZXiaSignCheck:      toBool(getValue("X_ZZXIA_SIGN_CHECK")),
+		XZZXiaSignSecret:     getValue("X_ZZXIA_SIGN_SECRET"),
+		ListenAddr:           getValue("LISTEN_ADDR"),
+		// JWT 配置
+		JWTSecret:          getValue("JWT_SECRET"),
+		JWTExpirationHours: toInt(getValue("JWT_EXPIRATION_HOURS"), 8),
+		// HTTPS 配置
+		EnableHTTPS: toBool(getValue("ENABLE_HTTPS")),
+		TLSCertFile: getValue("TLS_CERT_FILE"),
+		TLSKeyFile:  getValue("TLS_KEY_FILE"),
+		// CORS 配置
+		EnableStrictCORS:   toBool(getValue("ENABLE_STRICT_CORS")),
+		CORSAllowedOrigins: corsOrigins,
+		// Cookie 配置
+		UseCookieAuth: toBool(getValue("USE_COOKIE_AUTH")),
+		// 调试模式
+		DebugMode: toBool(getValue("DEBUG_MODE")),
 	}
 }
 
@@ -122,6 +194,11 @@ func main() {
 		log.Fatalf("创建日志目录失败: %v", err)
 	}
 
+	// 验证 JWT Secret
+	if cfg.JWTSecret == "your-very-secure-random-secret-key-change-me-please" {
+		log.Println("⚠️  警告: 请修改 JWT_SECRET 配置为随机字符串！")
+	}
+
 	s := &server{cfg: cfg}
 
 	mux := http.NewServeMux()
@@ -129,16 +206,66 @@ func main() {
 	mux.HandleFunc("/hook/gitlab", s.handleHookGitlab)
 	mux.HandleFunc("/hook/hand", s.handleHookHand)
 
-	handler := cors.AllowAll().Handler(loggingMiddleware(mux))
-	log.Printf("Go 版 gan-api-server 启动，监听 %s", cfg.ListenAddr)
-	if err := http.ListenAndServe(cfg.ListenAddr, handler); err != nil {
-		log.Fatalf("服务启动失败: %v", err)
+	// 配置 CORS
+	var corsHandler *cors.Cors
+	if cfg.EnableStrictCORS && len(cfg.CORSAllowedOrigins) > 0 {
+		log.Printf("启用严格 CORS 限制，允许来源: %v", cfg.CORSAllowedOrigins)
+		corsHandler = cors.New(cors.Options{
+			AllowedOrigins:   cfg.CORSAllowedOrigins,
+			AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+			AllowedHeaders:   []string{"Content-Type", "token", "user", "sec", "X-ZZXia-Signature", "X-Gitlab-Token"},
+			AllowCredentials: true,
+			MaxAge:           300,
+		})
+	} else {
+		log.Println("⚠️  CORS 允许所有来源（开发/测试模式）")
+		corsHandler = cors.AllowAll()
+	}
+
+	// 设置全局调试模式
+	debugMode = cfg.DebugMode
+	if debugMode {
+		log.Println("🐛 调试模式已启用")
+	}
+
+	handler := corsHandler.Handler(securityHeadersMiddleware(loggingMiddleware(mux)))
+
+	// 启动服务器
+	if cfg.EnableHTTPS {
+		if cfg.TLSCertFile == "" || cfg.TLSKeyFile == "" {
+			log.Fatalf("启用 HTTPS 需要配置 TLS_CERT_FILE 和 TLS_KEY_FILE")
+		}
+		log.Printf("🔒 启动 HTTPS 服务器: %s", cfg.ListenAddr)
+		log.Printf("   证书: %s", cfg.TLSCertFile)
+		if err := http.ListenAndServeTLS(cfg.ListenAddr, cfg.TLSCertFile, cfg.TLSKeyFile, handler); err != nil {
+			log.Fatalf("HTTPS 服务启动失败: %v", err)
+		}
+	} else {
+		log.Printf("⚠️  启动 HTTP 服务器（不安全）: %s", cfg.ListenAddr)
+		log.Println("   建议生产环境启用 HTTPS (ENABLE_HTTPS=YES)")
+		if err := http.ListenAndServe(cfg.ListenAddr, handler); err != nil {
+			log.Fatalf("HTTP 服务启动失败: %v", err)
+		}
 	}
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func securityHeadersMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		// 如果是 HTTPS，添加 HSTS
+		if r.TLS != nil {
+			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -231,6 +358,9 @@ func (s *server) authUserPW(user, sec string) (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("读取用户库失败: %w", err)
 	}
+	if debugMode {
+		log.Printf("[DEBUG] authUserPW: user=%s, sec=%s, sec_len=%d", user, sec, len(sec))
+	}
 	for _, line := range lines {
 		if isCommentOrEmpty(line) {
 			continue
@@ -245,15 +375,31 @@ func (s *server) authUserPW(user, sec string) (map[string]string, error) {
 		if lineUser != user {
 			continue
 		}
+		if debugMode {
+			log.Printf("[DEBUG] 找到用户: lineUser=%s, lineSalt=%s, lineSecret=%s", lineUser, lineSalt, lineSecret)
+		}
 		if len(sec) < 32 {
+			if debugMode {
+				log.Printf("[DEBUG] sec 长度不足: %d < 32", len(sec))
+			}
 			return nil, errors.New("用户名密码错")
 		}
 		newSec := sec[2:32]
+		if debugMode {
+			log.Printf("[DEBUG] newSec (sec[2:32]): %s", newSec)
+		}
 		secret := digestSHA256Salt(lineSalt, newSec)
+		if debugMode {
+			log.Printf("[DEBUG] digestSHA256Salt 结果: %s, len=%d", secret, len(secret))
+		}
 		if len(secret) < 53 {
 			return nil, errors.New("服务器用户信息异常")
 		}
 		newSecret := secret[3:53]
+		if debugMode {
+			log.Printf("[DEBUG] newSecret (secret[3:53]): %s", newSecret)
+			log.Printf("[DEBUG] 比对: newSecret=%s, lineSecret=%s, 相等=%v", newSecret, lineSecret, newSecret == lineSecret)
+		}
 		if newSecret == lineSecret {
 			return map[string]string{"Status": "Success", "Message": "验证成功"}, nil
 		}
@@ -262,44 +408,57 @@ func (s *server) authUserPW(user, sec string) (map[string]string, error) {
 	return nil, errors.New("用户名不存在")
 }
 
-func (s *server) authUserToken(token string) (string, error) {
-	lines, err := readLines(s.cfg.UserTokenFile)
+// authUserToken 验证 JWT Token
+func (s *server) authUserToken(tokenString string) (string, error) {
+	// 解析 JWT
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// 验证签名方法
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("意外的签名方法: %v", token.Header["alg"])
+		}
+		return []byte(s.cfg.JWTSecret), nil
+	})
+
 	if err != nil {
-		return "", fmt.Errorf("读取 Token 库失败: %w", err)
+		return "", fmt.Errorf("token 解析失败: %w", err)
 	}
-	for _, line := range lines {
-		if isCommentOrEmpty(line) {
-			continue
-		}
-		fields := strings.Fields(line)
-		if len(fields) < 2 {
-			return "", errors.New("Token 库信息异常")
-		}
-		if fields[1] == token {
-			return fields[0], nil
-		}
+
+	if !token.Valid {
+		return "", errors.New("token 无效")
 	}
-	return "", errors.New("Token 库中未找到")
+
+	// 提取用户名
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", errors.New("token Claims 格式错误")
+	}
+
+	username, ok := claims["username"].(string)
+	if !ok {
+		return "", errors.New("token 中缺少用户名")
+	}
+
+	return username, nil
 }
 
-func (s *server) getUserToken(user string) (string, error) {
-	lines, err := readLines(s.cfg.UserTokenFile)
+// generateJWT 生成 JWT Token
+func (s *server) generateJWT(username string) (string, error) {
+	now := time.Now()
+	expirationTime := now.Add(time.Duration(s.cfg.JWTExpirationHours) * time.Hour)
+
+	claims := jwt.MapClaims{
+		"username": username,
+		"iat":      now.Unix(),
+		"exp":      expirationTime.Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(s.cfg.JWTSecret))
 	if err != nil {
-		return "", fmt.Errorf("读取 Token 库失败: %w", err)
+		return "", fmt.Errorf("token 生成失败: %w", err)
 	}
-	for _, line := range lines {
-		if isCommentOrEmpty(line) {
-			continue
-		}
-		fields := strings.Fields(line)
-		if len(fields) < 2 {
-			return "", errors.New("Token 库信息异常")
-		}
-		if fields[0] == user {
-			return fields[1], nil
-		}
-	}
-	return "", errors.New("Token 库中未找到")
+
+	return tokenString, nil
 }
 
 func (s *server) getUserInfo(user string) (string, string, error) {
@@ -338,16 +497,43 @@ func (s *server) handleGetToken(w http.ResponseWriter, r *http.Request) {
 		jsonResponse(w, http.StatusBadRequest, map[string]string{"Status": "Error", "Message": "请提供登录信息"})
 		return
 	}
+
+	// 验证用户名密码
 	if _, err := s.authUserPW(user, sec); err != nil {
-		jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": err.Error()})
+		log.Printf("[AUTH] 登录失败: user=%s ip=%s error=%v", user, r.RemoteAddr, err)
+		jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "用户名或密码错误"})
 		return
 	}
-	token, err := s.getUserToken(user)
+
+	// 生成 JWT Token
+	token, err := s.generateJWT(user)
 	if err != nil {
-		jsonResponse(w, http.StatusInternalServerError, map[string]string{"Status": "Error", "Message": err.Error()})
+		log.Printf("[AUTH] Token 生成失败: user=%s error=%v", user, err)
+		jsonResponse(w, http.StatusInternalServerError, map[string]string{"Status": "Error", "Message": "Token 生成失败"})
 		return
 	}
-	jsonResponse(w, http.StatusOK, map[string]string{"Status": "Success", "Token": token})
+
+	log.Printf("[AUTH] 登录成功: user=%s ip=%s", user, r.RemoteAddr)
+
+	// 如果启用 Cookie 认证，设置 HttpOnly Cookie
+	if s.cfg.UseCookieAuth {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "auth_token",
+			Value:    token,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   s.cfg.EnableHTTPS, // 仅在 HTTPS 时启用 Secure
+			SameSite: http.SameSiteStrictMode,
+			MaxAge:   s.cfg.JWTExpirationHours * 3600,
+		})
+	}
+
+	// 返回 JSON (兼容旧版前端或不使用 Cookie 的情况)
+	jsonResponse(w, http.StatusOK, map[string]string{
+		"Status":  "Success",
+		"Token":   token,
+		"Message": "登录成功",
+	})
 }
 
 // Body helper
@@ -597,7 +783,16 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	token := r.Header.Get("token")
+	// 优先从 Cookie 读取 Token
+	var token string
+	cookie, err := r.Cookie("auth_token")
+	if err == nil && cookie.Value != "" {
+		token = cookie.Value
+	} else {
+		// 兼容旧方式: 从 Header 读取
+		token = r.Header.Get("token")
+	}
+
 	user := r.Header.Get("user")
 	sec := r.Header.Get("sec")
 	sign := r.Header.Get("X-ZZXia-Signature")
@@ -610,13 +805,15 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 	if token != "" {
 		verifiedUser, err := s.authUserToken(token)
 		if err != nil {
-			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": err.Error()})
+			log.Printf("[AUTH] Token 验证失败: ip=%s error=%v", r.RemoteAddr, err)
+			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "Token 无效或已过期，请重新登录"})
 			return
 		}
 		user = verifiedUser
 	} else {
 		if _, err := s.authUserPW(user, sec); err != nil {
-			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": err.Error()})
+			log.Printf("[AUTH] 密码验证失败: user=%s ip=%s", user, r.RemoteAddr)
+			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "用户名或密码错误"})
 			return
 		}
 	}

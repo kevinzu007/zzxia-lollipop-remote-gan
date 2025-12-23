@@ -1,11 +1,12 @@
-## Go 版 gan-api-server 配置示例
+## Go 版 lollipop-remote-gan-api 配置示例
 ## 可复制为 config.yaml 修改
 
 GAN_CMD_HOME: "../zzxia-op-super-invincible-lollipop"
-GAN_LOG_HOME: "../log"
+GAN_LOG_HOME: "./log"
 GAN_RUN_ENV: "dev"
 
 USER_DB_FILE: "../my_sec/user.db"
+# USER_TOKEN_FILE 已废弃，改用 JWT，此配置项保留以兼容旧代码
 USER_TOKEN_FILE: "../my_sec/user.db.token"
 
 GITLAB_SECRET_TOKEN: "1234567890zxc"
@@ -17,4 +18,46 @@ X_ZZXIA_SIGN_CHECK: "NO"
 X_ZZXIA_SIGN_SECRET: "setYourselfSigncharStringHere"
 
 LISTEN_ADDR: ":9527"
+
+## ===== JWT 认证配置 =====
+# JWT 签名密钥（请修改为随机字符串，建议 32 位以上，shell：openssl rand -base64 32）
+JWT_SECRET: "your-very-secure-random-secret-key-change-me-please"
+# JWT Token 有效期（小时），默认 8 小时
+JWT_EXPIRATION_HOURS: "8"
+
+## ===== HTTPS 配置 =====
+# 是否启用 HTTPS（YES/NO）
+ENABLE_HTTPS: "NO"
+# TLS 证书文件路径（启用 HTTPS 时必填）
+TLS_CERT_FILE: "/etc/letsencrypt/live/yourdomain.com/fullchain.pem"
+# TLS 私钥文件路径（启用 HTTPS 时必填）
+TLS_KEY_FILE: "/etc/letsencrypt/live/yourdomain.com/privkey.pem"
+
+## ===== Cookie 配置 =====
+# 是否使用 HttpOnly Cookie 存储 Token（YES/NO）
+# YES = 使用 Cookie（更安全，防 XSS）
+# NO = 返回 JSON Token（兼容旧版前端）
+# 注意：如果使用 Cookie 认证（USE_COOKIE_AUTH: "YES"），就必须启用严格 CORS（ENABLE_STRICT_CORS: "YES"）。
+USE_COOKIE_AUTH: "YES"
+
+## ===== CORS 跨域配置 =====
+# 是否启用严格 CORS 限制（YES/NO）
+# NO = 允许所有来源（开发/测试环境）
+# YES = 仅允许配置的来源（生产环境）
+ENABLE_STRICT_CORS: "YES"
+# 允许的来源列表（逗号分隔，启用严格 CORS 时生效）
+CORS_ALLOWED_ORIGINS: "https://yourdomain.com,https://www.yourdomain.com,http://localhost:3000"
+# 附加说明：
+#   使用 withCredentials: true (携带 Cookie) 时：
+#   ❌ ENABLE_STRICT_CORS: "NO" → 返回 Access-Control-Allow-Origin: * → 浏览器报错
+#   ✅ ENABLE_STRICT_CORS: "YES" → 返回具体来源 → 正常工作
+#   如果不使用 withCredentials (不携带 Cookie)：
+#   ✅ ENABLE_STRICT_CORS: "NO" → 返回 Access-Control-Allow-Origin: * → 正常工作
+#   ✅ ENABLE_STRICT_CORS: "YES" → 返回具体来源 → 正常工作
+
+## ===== 调试模式 =====
+# 是否启用调试模式（YES/NO）
+# YES = 输出详细的调试日志（用于排查问题）
+# NO = 只输出正常日志（生产环境推荐）
+DEBUG_MODE: "NO"
 
