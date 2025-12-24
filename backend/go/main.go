@@ -32,7 +32,6 @@ type Config struct {
 	GANLogHome           string
 	GANRunEnv            string
 	UserDBFile           string
-	UserTokenFile        string // 已废弃，保留以兼容
 	GitlabSecretToken    string
 	GitlabCommitEnvCheck bool
 	GitlabHookSendEmail  bool
@@ -79,7 +78,6 @@ func loadConfig() Config {
 		"GAN_LOG_HOME":                "../log",
 		"GAN_RUN_ENV":                 "dev",
 		"USER_DB_FILE":                "../my_sec/user.db",
-		"USER_TOKEN_FILE":             "../my_sec/user.db.token",
 		"GITLAB_SECRET_TOKEN":         "1234567890zxc",
 		"GITLAB_GIT_COMMIT_ENV_CHECK": "YES",
 		"GITLAB_HOOK_SEND_EMAIL":      "YES",
@@ -159,7 +157,6 @@ func loadConfig() Config {
 		GANLogHome:           getValue("GAN_LOG_HOME"),
 		GANRunEnv:            getValue("GAN_RUN_ENV"),
 		UserDBFile:           getValue("USER_DB_FILE"),
-		UserTokenFile:        getValue("USER_TOKEN_FILE"),
 		GitlabSecretToken:    getValue("GITLAB_SECRET_TOKEN"),
 		GitlabCommitEnvCheck: toBool(getValue("GITLAB_GIT_COMMIT_ENV_CHECK")),
 		GitlabHookSendEmail:  toBool(getValue("GITLAB_HOOK_SEND_EMAIL")),

@@ -6,8 +6,7 @@ GAN_LOG_HOME: "./log"
 GAN_RUN_ENV: "dev"
 
 USER_DB_FILE: "../my_sec/user.db"
-# USER_TOKEN_FILE 已废弃，改用 JWT，此配置项保留以兼容旧代码
-USER_TOKEN_FILE: "../my_sec/user.db.token"
+
 
 GITLAB_SECRET_TOKEN: "1234567890zxc"
 GITLAB_GIT_COMMIT_ENV_CHECK: "YES"
