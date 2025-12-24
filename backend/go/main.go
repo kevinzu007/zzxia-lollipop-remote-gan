@@ -3,8 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"crypto/hmac"
-	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -36,8 +34,6 @@ type Config struct {
 	GitlabCommitEnvCheck bool
 	GitlabHookSendEmail  bool
 	HandHookSendEmail    bool
-	XZZXiaSignCheck      bool
-	XZZXiaSignSecret     string
 	ListenAddr           string
 	// JWT 配置
 	JWTSecret          string
@@ -82,8 +78,6 @@ func loadConfig() Config {
 		"GITLAB_GIT_COMMIT_ENV_CHECK": "YES",
 		"GITLAB_HOOK_SEND_EMAIL":      "YES",
 		"HAND_HOOK_SEND_EMAIL":        "NO",
-		"X_ZZXIA_SIGN_CHECK":          "NO",
-		"X_ZZXIA_SIGN_SECRET":         "setYourselfSigncharStringHere",
 		"LISTEN_ADDR":                 ":9527",
 		// JWT 配置
 		"JWT_SECRET":           "your-very-secure-random-secret-key-change-me-please",
@@ -161,8 +155,6 @@ func loadConfig() Config {
 		GitlabCommitEnvCheck: toBool(getValue("GITLAB_GIT_COMMIT_ENV_CHECK")),
 		GitlabHookSendEmail:  toBool(getValue("GITLAB_HOOK_SEND_EMAIL")),
 		HandHookSendEmail:    toBool(getValue("HAND_HOOK_SEND_EMAIL")),
-		XZZXiaSignCheck:      toBool(getValue("X_ZZXIA_SIGN_CHECK")),
-		XZZXiaSignSecret:     getValue("X_ZZXIA_SIGN_SECRET"),
 		ListenAddr:           getValue("LISTEN_ADDR"),
 		// JWT 配置
 		JWTSecret:          getValue("JWT_SECRET"),
@@ -210,7 +202,7 @@ func main() {
 		corsHandler = cors.New(cors.Options{
 			AllowedOrigins:   cfg.CORSAllowedOrigins,
 			AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-			AllowedHeaders:   []string{"Content-Type", "token", "user", "sec", "X-ZZXia-Signature", "X-Gitlab-Token"},
+			AllowedHeaders:   []string{"Content-Type", "token", "user", "sec", "X-Gitlab-Token"},
 			AllowCredentials: true,
 			MaxAge:           300,
 		})
@@ -276,12 +268,6 @@ func digestSHA256(msg string) string {
 
 func digestSHA256Salt(salt, msg string) string {
 	return digestSHA256(salt + msg)
-}
-
-func digestHMACSHA1(key string, body []byte) string {
-	h := hmac.New(sha1.New, []byte(key))
-	h.Write(body)
-	return hex.EncodeToString(h.Sum(nil))
 }
 
 func readLines(path string) ([]string, error) {
@@ -792,7 +778,6 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 
 	user := r.Header.Get("user")
 	sec := r.Header.Get("sec")
-	sign := r.Header.Get("X-ZZXia-Signature")
 
 	if token == "" && (user == "" || sec == "") {
 		jsonResponse(w, http.StatusBadRequest, map[string]string{"Status": "Error", "Message": "请提供登录信息"})
@@ -811,14 +796,6 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 		if _, err := s.authUserPW(user, sec); err != nil {
 			log.Printf("[AUTH] 密码验证失败: user=%s ip=%s", user, r.RemoteAddr)
 			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "用户名或密码错误"})
-			return
-		}
-	}
-
-	if s.cfg.XZZXiaSignCheck {
-		serverSign := digestHMACSHA1(s.cfg.XZZXiaSignSecret, rawBody)
-		if sign != serverSign {
-			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "X-ZZXia-Signature 验证失败"})
 			return
 		}
 	}
