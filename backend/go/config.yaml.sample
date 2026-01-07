@@ -33,8 +33,8 @@ TLS_KEY_FILE: "/etc/letsencrypt/live/yourdomain.com/privkey.pem"
 
 ## ===== Cookie 配置 =====
 # 是否使用 HttpOnly Cookie 存储 Token（YES/NO）
-# YES = 使用 Cookie（更安全，防 XSS）
-# NO = 返回 JSON Token（兼容旧版前端）
+# YES = 使用 Cookie（更安全，防 XSS，但不支持跨域/多环境切换）
+# NO = 返回 JSON Token（支持多环境切换，但安全性稍低）
 # 注意：如果使用 Cookie 认证（USE_COOKIE_AUTH: "YES"），就必须启用严格 CORS（ENABLE_STRICT_CORS: "YES"）。
 USE_COOKIE_AUTH: "YES"
 

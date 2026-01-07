@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -177,6 +178,28 @@ type server struct {
 	cfg Config
 }
 
+func getClientIP(r *http.Request) string {
+	// 1. 尝试 X-Forwarded-For (格式: client, proxy1, proxy2)
+	val := r.Header.Get("X-Forwarded-For")
+	if val != "" {
+		parts := strings.Split(val, ",")
+		if len(parts) > 0 {
+			return strings.TrimSpace(parts[0])
+		}
+	}
+	// 2. 尝试 X-Real-IP
+	val = r.Header.Get("X-Real-IP")
+	if val != "" {
+		return strings.TrimSpace(val)
+	}
+	// 3. 回退到 RemoteAddr (去除端口)
+	addr := r.RemoteAddr
+	if host, _, err := net.SplitHostPort(addr); err == nil {
+		return host
+	}
+	return addr
+}
+
 func main() {
 	cfg := loadConfig()
 	if err := os.MkdirAll(cfg.GANLogHome, 0o755); err != nil {
@@ -240,7 +263,7 @@ func main() {
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL.Path)
+		log.Printf("%s %s %s", getClientIP(r), r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -474,6 +497,7 @@ func (s *server) handleGetToken(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
+	clientIP := getClientIP(r)
 	user := r.Header.Get("user")
 	sec := r.Header.Get("sec")
 	if user == "" || sec == "" {
@@ -483,7 +507,7 @@ func (s *server) handleGetToken(w http.ResponseWriter, r *http.Request) {
 
 	// 验证用户名密码
 	if _, err := s.authUserPW(user, sec); err != nil {
-		log.Printf("[AUTH] 登录失败: user=%s ip=%s error=%v", user, r.RemoteAddr, err)
+		log.Printf("[AUTH] 登录失败: user=%s ip=%s error=%v", user, clientIP, err)
 		jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "用户名或密码错误"})
 		return
 	}
@@ -496,7 +520,7 @@ func (s *server) handleGetToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("[AUTH] 登录成功: user=%s ip=%s", user, r.RemoteAddr)
+	log.Printf("[AUTH] 登录成功: user=%s ip=%s", user, clientIP)
 
 	// 如果启用 Cookie 认证，设置 HttpOnly Cookie
 	if s.cfg.UseCookieAuth {
@@ -766,6 +790,9 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
+	// 获取客户端 IP
+	clientIP := getClientIP(r)
+
 	// 优先从 Cookie 读取 Token
 	var token string
 	cookie, err := r.Cookie("auth_token")
@@ -787,14 +814,14 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 	if token != "" {
 		verifiedUser, err := s.authUserToken(token)
 		if err != nil {
-			log.Printf("[AUTH] Token 验证失败: ip=%s error=%v", r.RemoteAddr, err)
+			log.Printf("[AUTH] Token 验证失败: ip=%s error=%v", clientIP, err)
 			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "Token 无效或已过期，请重新登录"})
 			return
 		}
 		user = verifiedUser
 	} else {
 		if _, err := s.authUserPW(user, sec); err != nil {
-			log.Printf("[AUTH] 密码验证失败: user=%s ip=%s", user, r.RemoteAddr)
+			log.Printf("[AUTH] 密码验证失败: user=%s ip=%s", user, clientIP)
 			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "用户名或密码错误"})
 			return
 		}
