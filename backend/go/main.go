@@ -762,15 +762,10 @@ func (s *server) handleHookGitlab(w http.ResponseWriter, r *http.Request) {
 
 type handBody struct {
 	Do       string   `json:"do"`
-	List     string   `json:"list"`
-	Number   string   `json:"number"`
 	Category string   `json:"category"`
 	Branch   string   `json:"branch"`
-	ImgPre   string   `json:"image-pre-name"`
-	Email    string   `json:"email"`
 	SkipTest string   `json:"skiptest"`
 	Force    string   `json:"force"`
-	Verbose  string   `json:"verbose"`
 	Gray     string   `json:"gray"`
 	Version  string   `json:"version"`
 	Extra    string   `json:"extra"`
