@@ -855,13 +855,13 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 	switch body.Do {
 	case "build":
 		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/build.sh")
-	case "build-parallel":
+	case "build-para", "build-parallel":
 		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/build-parallel.sh")
 	case "gogogo":
 		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/gogogo.sh")
-	case "docker-deploy", "docker-cluster-service-deploy":
+	case "deploy-docker", "docker-cluster-service-deploy":
 		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/docker-cluster-service-deploy.sh")
-	case "web-release":
+	case "deploy-web", "web-release":
 		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/web-release.sh")
 	case "deploy":
 		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/deploy.sh")
