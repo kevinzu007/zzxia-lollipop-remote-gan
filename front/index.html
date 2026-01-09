@@ -833,7 +833,7 @@
             <div class="project-list-wrapper">
               <textarea id="projects" placeholder="一个项目一行"></textarea>
               <span class="lazy-btn lazy-overlay" onclick="openProjectModal()">
-                【 我知道你很懒，来啊！来点我呀！】
+                【 大王，来啊！来点我呀！】
               </span>
             </div>
           </div>
@@ -1257,7 +1257,7 @@
 
       // Validate: at least one of category or projects
       if (!category && projectList.length === 0) {
-        return showToast('请选择"项目类别" 或 输入"项目列表" (二选一)')
+        return showToast('请选择"项目类别" 或 输入"项目列表" (二至少选一)')
       }
 
       // Resolve Env config
