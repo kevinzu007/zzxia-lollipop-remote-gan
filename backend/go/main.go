@@ -762,7 +762,7 @@ func (s *server) handleHookGitlab(w http.ResponseWriter, r *http.Request) {
 
 type handBody struct {
 	Do       string   `json:"do"`
-	Lise     string   `json:"lise"`
+	List     string   `json:"list"`
 	Number   string   `json:"number"`
 	Category string   `json:"category"`
 	Branch   string   `json:"branch"`
