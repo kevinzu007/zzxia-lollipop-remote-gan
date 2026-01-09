@@ -117,6 +117,18 @@
          ]
      }
 
+     7 deploy body ：
+     {
+         "do": "deploy",
+         "action": "help|list|docker|web",
+         "Extra": "",
+         "projects": [
+             "pj1",
+             "pj2",
+             "pj3"
+         ]
+     }
+
 
 ## 测试 api
 

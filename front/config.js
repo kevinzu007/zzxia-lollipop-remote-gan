@@ -18,7 +18,7 @@ window.ganConfig = {
         {
             name: 'prod',
             value: 'prod',
-            url: 'https://yourdomain.com'
+            url: 'https://mtss-gan-api.mtshengsheng.com'
         }
     ],
     categories: ['', 'java', 'node', 'dockerfile'],
@@ -37,5 +37,14 @@ window.ganConfig = {
         { category: 'node', name: 'gc-platform-node' },
         { category: 'node', name: 'gc-agent-front' },
         { category: 'node', name: 'gc-fastprotect-front' }
-    ]
+    ],
+    actions: {
+        'build': ['default', 'help', 'list'],
+        'build-parallel': ['default', 'help', 'list'],
+        'deploy': ['help', 'list', 'docker', 'web'],
+        'gogogo': ['default', 'help', 'list'],
+        'docker-cluster-service-deploy': ['help', 'list', 'list-run', 'create', 'modify', 'update', 'rollback', 'scale', 'rm', 'status', 'detail', 'logs'],
+        'web-release': ['help', 'list', 'release', 'rollback'],
+        'docker-image-search': ['default', 'help', 'list']
+    }
 }

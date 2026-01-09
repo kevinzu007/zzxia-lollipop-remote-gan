@@ -659,7 +659,9 @@
     .lazy-overlay {
       position: absolute;
       top: 6px;
-      left: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
       z-index: 2;
       margin: 0;
       /* Button Style */
@@ -770,17 +772,19 @@
       <div class="cell-content">
         <div class="left-cell">
           <p class="cell require">
-            <label>1、运行环境</label>
+            <label>0、运行环境</label>
             <select id="env"></select>
           </p>
 
           <p class="cell require">
-            <label>2、干</label>
+            <label>1、干</label>
             <select id="do">
-              <option value="" style="display:none"></option>
-              <option value="build">build</option>
-              <option value="deploy">deploy</option>
-              <option value="gogogo">gogogo</option>
+            </select>
+          </p>
+
+          <p class="cell require">
+            <label>2、姿势</label>
+            <select id="action">
             </select>
           </p>
 
@@ -833,7 +837,7 @@
             <div class="project-list-wrapper">
               <textarea id="projects" placeholder="一个项目一行"></textarea>
               <span class="lazy-btn lazy-overlay" onclick="openProjectModal()">
-                【 大王，来啊！来点我呀！】
+                【 大王，来啊！快来点我呀！】
               </span>
             </div>
           </div>
@@ -1000,7 +1004,49 @@
       }
     }
 
+    // Initialize Do and Action dropdowns
+    function initDoAction() {
+      const doSelect = document.getElementById('do')
+      const actionSelect = document.getElementById('action')
+      const actionsConfig = window.ganConfig.actions || {}
+
+      // Populate Do dropdown
+      const doOptions = Object.keys(actionsConfig)
+      doOptions.forEach(opt => {
+        const option = document.createElement('option')
+        option.value = opt
+        option.textContent = opt
+        doSelect.appendChild(option)
+      })
+
+      // Function to update Action dropdown based on Do selection
+      function updateActionOptions() {
+        const selectedDo = doSelect.value
+        actionSelect.innerHTML = '' // Clear existing options
+
+        if (selectedDo && actionsConfig[selectedDo]) {
+          const actionOptions = actionsConfig[selectedDo]
+          actionOptions.forEach(opt => {
+            const option = document.createElement('option')
+            option.value = opt
+            option.textContent = opt
+            actionSelect.appendChild(option)
+          })
+        }
+      }
+
+      // Initial population
+      if (doOptions.length > 0) {
+        doSelect.value = doOptions[0]
+        updateActionOptions()
+      }
+
+      // Listen for changes
+      doSelect.addEventListener('change', updateActionOptions)
+    }
+
     initEnv()
+    initDoAction()
 
     // 显示提示消息
     function showToast(message, duration = 3000) {
@@ -1244,6 +1290,9 @@
       let doValue = $('#do option:selected').val()
       if (!doValue) return showToast('请选择"干"')
 
+      let actionValue = $('#action option:selected').val()
+      if (!actionValue) return showToast('请选择"姿势"')
+
       let env = $('#env option:selected').val()
       if (!env) return showToast('请选择运行环境')
 
@@ -1297,6 +1346,7 @@
           },
           body: JSON.stringify({
             do: doValue,
+            action: $('#action option:selected').val(),
             env: realEnvValue,
             branch: $('#branch').val(),
             version: $('#version').val(),
