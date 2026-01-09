@@ -760,16 +760,76 @@ func (s *server) handleHookGitlab(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, http.StatusOK, map[string]string{"Status": "OK", "Logfile": logTxt})
 }
 
-type handBody struct {
-	Do       string   `json:"do"`
-	Category string   `json:"category"`
-	Branch   string   `json:"branch"`
-	SkipTest string   `json:"skiptest"`
-	Force    string   `json:"force"`
-	Gray     string   `json:"gray"`
-	Version  string   `json:"version"`
-	Extra    string   `json:"extra"`
-	Projects []string `json:"projects"`
+type RunReq struct {
+	Do             string   `json:"do"`
+	Action         string   `json:"action"`
+	Category       string   `json:"category"`
+	Branch         string   `json:"branch"`
+	SkipTest       string   `json:"skiptest"`
+	Force          string   `json:"force"`
+	Gray           string   `json:"gray"`
+	ReleaseVersion string   `json:"release-version"`
+	Extra          string   `json:"extra"`
+	Projects       []string `json:"projects"`
+}
+
+func buildShellCmd(req RunReq, cfg Config) (string, error) {
+	var cmd string
+	switch req.Do {
+	case "build":
+		cmd = filepath.Join(cfg.GANCmdHome, "deploy/build.sh")
+	case "build-para", "build-parallel":
+		cmd = filepath.Join(cfg.GANCmdHome, "deploy/build-parallel.sh")
+	case "gogogo":
+		cmd = filepath.Join(cfg.GANCmdHome, "deploy/gogogo.sh")
+	case "deploy-docker", "docker-cluster-service-deploy":
+		cmd = filepath.Join(cfg.GANCmdHome, "deploy/docker-cluster-service-deploy.sh")
+	case "deploy-web", "web-release":
+		cmd = filepath.Join(cfg.GANCmdHome, "deploy/web-release.sh")
+	case "deploy":
+		cmd = filepath.Join(cfg.GANCmdHome, "deploy/deploy.sh")
+	case "docker-image-search":
+		cmd = filepath.Join(cfg.GANCmdHome, "deploy/deploy.sh")
+	default:
+		return "", fmt.Errorf("Webhook信息之【do】不存在或错误")
+	}
+
+	// Action handling
+	if req.Action != "" && req.Action != "default" {
+		cmd += " --" + req.Action
+	}
+
+	// Common flags
+	if req.Branch != "" {
+		cmd += " --branch " + req.Branch
+	}
+	if matched, _ := regexp.MatchString(`(?i)^yes|^y`, req.SkipTest); matched {
+		cmd += " --skiptest "
+	}
+	if matched, _ := regexp.MatchString(`(?i)^yes|^y`, req.Force); matched {
+		cmd += " --force "
+	}
+	if matched, _ := regexp.MatchString(`(?i)^yes|^y`, req.Gray); matched {
+		cmd += " --gray "
+	}
+	if req.Category != "" {
+		cmd += " --category " + req.Category
+	}
+	if req.ReleaseVersion != "" {
+		cmd += " --release-version " + req.ReleaseVersion
+	}
+
+	// Extra
+	if req.Extra != "" {
+		cmd += " " + req.Extra
+	}
+
+	// Projects
+	if len(req.Projects) > 0 {
+		cmd += " " + strings.Join(req.Projects, " ")
+	}
+
+	return cmd, nil
 }
 
 func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
@@ -822,8 +882,8 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var body handBody
-	if err := json.Unmarshal(rawBody, &body); err != nil {
+	var req RunReq
+	if err := json.Unmarshal(rawBody, &req); err != nil {
 		jsonResponse(w, http.StatusBadRequest, map[string]string{"Status": "Error", "Message": "JSON解析失败"})
 		return
 	}
@@ -834,7 +894,7 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if body.Do == "" {
+	if req.Do == "" {
 		jsonResponse(w, http.StatusBadRequest, map[string]string{"Status": "Error", "Message": "Webhook信息不存在或错误"})
 		return
 	}
@@ -846,56 +906,10 @@ func (s *server) handleHookHand(w http.ResponseWriter, r *http.Request) {
 		"HOOK_USER_EMAIL=" + userEmail,
 	}
 
-	var cmd string
-	switch body.Do {
-	case "build":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/build.sh")
-	case "build-para", "build-parallel":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/build-parallel.sh")
-	case "gogogo":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/gogogo.sh")
-	case "deploy-docker", "docker-cluster-service-deploy":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/docker-cluster-service-deploy.sh")
-	case "deploy-web", "web-release":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/web-release.sh")
-	case "deploy":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/deploy.sh")
-	default:
-		jsonResponse(w, http.StatusBadRequest, map[string]string{"Status": "Error", "Message": "Webhook信息之【do】不存在或错误"})
+	cmd, err := buildShellCmd(req, s.cfg)
+	if err != nil {
+		jsonResponse(w, http.StatusBadRequest, map[string]string{"Status": "Error", "Message": err.Error()})
 		return
-	}
-
-	if strings.Contains(body.Do, "deploy") {
-		if len(body.Projects) > 0 {
-			cmd += " " + strings.Join(body.Projects, " ")
-		}
-	} else {
-		if body.Branch != "" {
-			cmd += " --branch " + body.Branch
-		}
-		if matched, _ := regexp.MatchString(`(?i)^yes|^y`, body.SkipTest); matched {
-			cmd += " --skiptest "
-		}
-		if matched, _ := regexp.MatchString(`(?i)^yes|^y`, body.Force); matched {
-			cmd += " --force "
-		}
-		if body.Category != "" {
-			cmd += " --category " + body.Category
-		}
-		if body.Extra != "" {
-			cmd += " " + body.Extra
-		}
-		if len(body.Projects) > 0 {
-			cmd += " " + strings.Join(body.Projects, " ")
-		}
-		if body.Do == "gogogo" {
-			if body.Version != "" {
-				cmd += " --release-version " + body.Version
-			}
-			if matched, _ := regexp.MatchString(`(?i)^yes|^y`, body.Gray); matched {
-				cmd += " --gray "
-			}
-		}
 	}
 
 	logfile := filepath.Join(s.cfg.GANLogHome, fmt.Sprintf("webhook_hand--%s.log", hookTime))
