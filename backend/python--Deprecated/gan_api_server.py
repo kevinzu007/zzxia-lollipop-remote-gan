@@ -504,8 +504,8 @@ def hook_hand():
     # 2 body
     # 2.1 build body ：
     # {
-    #     "do": "build|gogogo|docker-deploy|web-release",
-    #     "lise": "yes",
+    #     "do": "build",
+    #     "list": "yes",
     #     "category": "java",
     #     "branch": "master",
     #     "image-pre-name": "ppp",
@@ -522,8 +522,8 @@ def hook_hand():
 
     # 2.2 build-parallel body ：
     # {
-    #     "do": "build|gogogo|docker-deploy|web-release",
-    #     "lise": "yes",
+    #     "do": "build-parallel",
+    #     "list": "yes",
     #     "number": "3",
     #     "category": "java",
     #     "branch": "master",
@@ -540,8 +540,8 @@ def hook_hand():
 
     # 2.3 gogogo body ：
     # {
-    #     "do": "build|gogogo|docker-deploy|web-release",
-    #     "lise": "yes",
+    #     "do": "gogogo",
+    #     "list": "yes",
     #     "category": "java",
     #     "branch": "master",
     #     "image-pre-name": "ppp",
@@ -559,10 +559,10 @@ def hook_hand():
     #     ]
     # }
 
-    # 2.4 docker-deploy body 晚点再来：
+    # 2.4 docker-cluster-service-deploy body ：
     # {
-    #     "do": "docker-deploy",    
-    #     "lise": "yes",
+    #     "do": "docker-cluster-service-deploy",
+    #     "list": "yes",
     #     "list-run": "k8s",
     #     "branch": "master",
     #     "image-pre-name": "ppp",
@@ -582,18 +582,9 @@ def hook_hand():
 
     # 2.5 web-release body 晚点再来：
     # {
-    #     "do": "docker-deploy",
-    #     "lise": "yes",
-    #     "list-run": "k8s",
-    #     "branch": "master",
-    #     "image-pre-name": "ppp",
-    #     "email": "xxx@xxx.com",
-    #     "skiptest": "yes",
-    #     "force": "yes",
-    #     "verbose": "yes",
-    #     "gray": "yes",
-    #     "release-version": "5.5",
-    #     "debug-port": "yes",
+    #     "do": "web-release",
+    #     "list": "yes",
+    #     "action": "release|rollback",
     #     "projects": [
     #         "pj1",
     #         "pj2",
