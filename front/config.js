@@ -38,6 +38,17 @@ window.ganConfig = {
         { category: 'node', name: 'gc-agent-front' },
         { category: 'node', name: 'gc-fastprotect-front' }
     ],
+    microServices: [
+        { category: 'microservice', name: 'child-api' },
+        { category: 'microservice', name: 'child-manage-api' },
+        { category: 'microservice', name: 'child-cosyvoice' }
+    ],
+    webProjects: [
+        { category: 'web', name: 'child-manage-front' },
+        { category: 'web', name: 'child-h5-front' },
+        { category: 'web', name: 'child-game-front' },
+        { category: 'web', name: 'child-pen-h5-front' }
+    ],
     actions: {
         'build': ['default', 'help', 'list'],
         'build-parallel': ['default', 'help', 'list'],

@@ -483,11 +483,8 @@
     }
 
     .disabled-cell {
-      opacity: 0.5;
-      background-color: rgba(255, 255, 255, 0.5) !important;
-      color: #333;
+      opacity: 0.4;
       pointer-events: none;
-      filter: grayscale(1);
     }
 
     /* Modal Styles */
@@ -794,20 +791,7 @@
           </p>
 
           <p class="cell">
-            <label>4、发布版本</label>
-            <input id="version" type="text">
-          </p>
-
-          <p class="cell">
-            <label>5、灰度发布</label>
-            <select id="gray">
-              <option value="no">no</option>
-              <option value="yes">yes</option>
-            </select>
-          </p>
-
-          <p class="cell">
-            <label>6、跳过测试</label>
+            <label>4、跳过测试</label>
             <select id="skiptest">
               <option value="no">no</option>
               <option value="yes">yes</option>
@@ -815,23 +799,33 @@
           </p>
 
           <p class="cell">
-            <label>7、强制构建</label>
+            <label>5、强制构建</label>
             <select id="force">
               <option value="no">no</option>
               <option value="yes">yes</option>
             </select>
           </p>
 
-          </select>
+          <p class="cell">
+            <label>6、发布版本</label>
+            <input id="version" type="text">
+          </p>
+
+          <p class="cell">
+            <label>7、灰度发布</label>
+            <select id="gray">
+              <option value="no">no</option>
+              <option value="yes">yes</option>
+            </select>
           </p>
         </div>
         <div class="right-cell">
-          <p class="cell require-one">
+          <p class="cell">
             <label>8、项目类别</label>
             <select id="category"></select>
           </p>
 
-          <div class="cell require-one textarea-cell project-list-cell">
+          <div class="cell textarea-cell project-list-cell">
             <label>9、项目列表</label>
 
             <div class="project-list-wrapper">
@@ -914,6 +908,14 @@
     let currentToken = ''
     let currentSec = ''
 
+    let currentSort = { field: 'name', asc: true } // Default sort
+    let currentProjectListName = 'projectList' // Default list source
+
+    // Modal customization state
+    let currentModalTitle = '选择项目'
+    let currentShowCategory = true
+    let currentNameHeader = '项目名称'
+
     const pigEl = document.getElementById('pig')
     const modalMask = document.getElementById('modalMask')
     const loginUserEl = document.getElementById('loginUser')
@@ -929,32 +931,10 @@
       const envSelect = document.getElementById('env')
       const doSelect = document.getElementById('do')
 
-      // Dynamic form state
-      function updateFormState() {
-        const doValue = doSelect.value
-        // Fields to disable when build: 4 (version), 5 (gray)
-        const versionInput = document.getElementById('version')
-        const graySelect = document.getElementById('gray')
-        const versionCell = versionInput.parentElement // .cell
-        const grayCell = graySelect.parentElement // .cell
+      // Old updateFormState removed in favor of handleDoLogic
 
-        if (doValue === 'build') {
-          versionInput.classList.add('disabled-cell')
-          graySelect.classList.add('disabled-cell')
-          versionInput.disabled = true
-          graySelect.disabled = true
-          // Optional: clear values? Maybe keeping them is better for UX if they switch back
-        } else {
-          versionInput.classList.remove('disabled-cell')
-          graySelect.classList.remove('disabled-cell')
-          versionInput.disabled = false
-          graySelect.disabled = false
-        }
-      }
-
-      doSelect.addEventListener('change', updateFormState)
       // Call once
-      updateFormState()
+
 
       if (!window.ganConfig || !window.ganConfig.envs) return
 
@@ -1033,6 +1013,119 @@
             actionSelect.appendChild(option)
           })
         }
+
+        // Handle Logic for specific 'Do' actions
+        handleDoLogic(selectedDo)
+      }
+
+
+      function handleDoLogic(selectedDo) {
+        // Reset defaults
+        let listType = 'projectList' // Config key
+        let listLabel = '9、项目列表'
+
+        // Modal defaults
+        let modalTitle = '选择项目'
+        let showCategory = true
+        let nameHeader = '项目名称'
+
+        if (selectedDo === 'docker-cluster-service-deploy') {
+          listType = 'microServices'
+          listLabel = '9、微服务'
+          modalTitle = '选择微服务'
+          showCategory = false
+          nameHeader = '微服务名称'
+        } else if (selectedDo === 'docker-image-search') {
+          listType = 'microServices'
+          listLabel = '9、微服务'
+          modalTitle = '选择微服务'
+          showCategory = false
+          nameHeader = '微服务名称'
+        } else if (selectedDo === 'web-release') {
+          listType = 'webProjects'
+          listLabel = '9、网站项目'
+          modalTitle = '选择网站项目'
+          showCategory = false
+          nameHeader = '网站项目名称'
+        }
+
+        // Update Disabling Logic
+        updateFieldState()
+
+        // Apply List Type
+        currentProjectListName = listType
+
+        // Apply Modal State
+        currentModalTitle = modalTitle
+        currentShowCategory = showCategory
+        currentNameHeader = nameHeader
+
+        // Apply List Label
+        // Locate label for field 9. It is inside .project-list-cell
+        const projectListLabel1 = document.querySelector('.project-list-cell label')
+        if (projectListLabel1) {
+          projectListLabel1.innerText = listLabel
+        } else {
+          console.error('Could not find .project-list-cell label')
+        }
+      }
+
+      function updateFieldState() {
+        const selectedDo = doSelect.value
+        const selectedAction = actionSelect.value
+
+        let disableFields = [] // IDs of fields to disable
+
+        // Rule 1: Do-based disabling
+        if (selectedDo === 'docker-cluster-service-deploy') {
+          // Disable: 3,4,5,8
+          disableFields.push('branch', 'skiptest', 'force', 'category')
+        } else if (selectedDo === 'docker-image-search') {
+          // Disable: 3,4,5,6,7,8
+          disableFields.push('branch', 'skiptest', 'force', 'version', 'gray', 'category')
+        } else if (selectedDo === 'web-release') {
+          // Disable: 3,4,5,6,7,8
+          disableFields.push('branch', 'skiptest', 'force', 'version', 'gray', 'category')
+        } else if (selectedDo === 'build' || selectedDo === 'build-parallel') {
+          // Disable: 6,7
+          disableFields.push('version', 'gray')
+        } else if (selectedDo === 'deploy') {
+          // Disable: 3,4,5,6,7,8
+          disableFields.push('branch', 'skiptest', 'force', 'version', 'gray', 'category')
+        }
+
+        // Rule 2: Action-based disabling
+        if (selectedAction === 'help' || selectedAction === 'list') {
+          // Disable: 3,4,5,6,7,8, 9, A
+          // Merge with existing to ensure all are covered
+          const actionDisabled = ['branch', 'skiptest', 'force', 'version', 'gray', 'category', 'projects', 'extra']
+          disableFields = [...new Set([...disableFields, ...actionDisabled])]
+        }
+
+        // Apply Disabling
+        const allFields = ['branch', 'skiptest', 'force', 'version', 'gray', 'category', 'projects', 'extra']
+        allFields.forEach(id => {
+          toggleCellDisabled(id, disableFields.includes(id))
+        })
+      }
+
+      function toggleCellDisabled(elementId, disabled) {
+        const el = document.getElementById(elementId)
+        if (el && el.parentElement) {
+          // For 'projects', the structure is: .cell > label + .project-list-wrapper > textarea
+          // So we need to target the .cell (parentElement.parentElement)
+          let targetElement = el.parentElement
+          if (elementId === 'projects' && targetElement.parentElement) {
+            targetElement = targetElement.parentElement
+          }
+
+          if (disabled) {
+            targetElement.classList.add('disabled-cell')
+            // Don't clear value
+          } else {
+            targetElement.classList.remove('disabled-cell')
+          }
+        }
       }
 
       // Initial population
@@ -1043,6 +1136,7 @@
 
       // Listen for changes
       doSelect.addEventListener('change', updateActionOptions)
+      actionSelect.addEventListener('change', updateFieldState)
     }
 
     initEnv()
@@ -1193,11 +1287,15 @@
     })
 
     // ------------- Project Modal Logic -------------
-    let currentSort = { field: 'name', asc: true } // Default sort
+
 
     function openProjectModal() {
       const modal = document.getElementById('projectModal')
       modal.style.display = 'flex'
+      // Update Title
+      const headerTitle = modal.querySelector('.modal-header h3')
+      if (headerTitle) headerTitle.textContent = currentModalTitle
+
       renderProjectTable()
     }
 
@@ -1216,8 +1314,31 @@
     }
 
     function renderProjectTable() {
-      const list = (window.ganConfig.projectList || []).slice() // Copy array to avoid mutating config
+      // Use dynamic list source
+      const sourceList = window.ganConfig[currentProjectListName] || []
+      const list = sourceList.slice()
       const tbody = document.getElementById('projectTableBody')
+
+      // Update Table Headers
+      const thead = document.querySelector('.project-table thead tr')
+      if (thead) {
+        // Assuming specific index for columns: 0:select, 1:index, 2:category, 3:name
+        // We can toggle display style of child nodes
+        const ths = thead.querySelectorAll('th')
+        if (ths.length >= 4) {
+          const catTh = ths[2]
+          const nameTh = ths[3]
+
+          // Toggle Category Column
+          catTh.style.display = currentShowCategory ? '' : 'none'
+
+          // Update Name Header
+          // Preserve the arrow symbol or re-add it? The existing HTML has ' ↕' text.
+          // Let's just set the text content to name + arrow if needed, but the click handler is on the TH.
+          // Simplest is to update text node inside.
+          nameTh.textContent = currentNameHeader + ' ↕'
+        }
+      }
 
       // Sort logic
       list.sort((a, b) => {
@@ -1231,12 +1352,21 @@
       tbody.innerHTML = ''
       list.forEach((item, index) => {
         const tr = document.createElement('tr')
+
+        let catTdHtml = ''
+        if (currentShowCategory) {
+          catTdHtml = `<td>${item.category}</td>`
+        } else {
+          catTdHtml = `<td style="display:none">${item.category}</td>`
+        }
+
         tr.innerHTML = `
           <td><input type="checkbox" name="projectSelect" value="${item.name}"></td>
           <td>${index + 1}</td>
-          <td>${item.category}</td>
+          ${catTdHtml}
           <td>${item.name}</td>
         `
+
         // Click row toggles checkbox
         tr.addEventListener('click', (e) => {
           if (e.target.tagName !== 'INPUT') {
@@ -1274,12 +1404,6 @@
       }
     }
 
-    // Existing mask click listener was: modalMask.addEventListener('click', ...)
-    // Replacing window.onclick might override other things if not careful.
-    // The previous window.onclick wasn't set?
-    // Let's rely on event listeners for specific elements where possible, or keep window for modal overlay.
-    // The login mask uses `modalMask.addEventListener`.
-    // So for project modal, let's use:
     document.getElementById('projectModal').addEventListener('click', (e) => {
       if (e.target.id === 'projectModal') closeProjectModal()
     })
@@ -1304,10 +1428,6 @@
 
       let category = $('#category option:selected').val()
 
-      // Validate: at least one of category or projects
-      if (!category && projectList.length === 0) {
-        return showToast('请选择"项目类别" 或 输入"项目列表" (二至少选一)')
-      }
 
       // Resolve Env config
       const envIdx = $('#env').val()
@@ -1379,15 +1499,17 @@
           if (done) break
           let chunk = decoder.decode(value, { stream: true })
 
-          // Basic HTML escape to prevent XSS (though content is logs)
-          chunk = chunk.replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
+          // Basic HTML escape to prevent XSS, but preserve HTML entities from shell output
+          chunk = chunk.replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
 
-          // Remove ANSI codes
-          chunk = chunk.replace(/\[.*?m/g, '')
+          // Remove ANSI escape codes (color codes, cursor control, etc.)
+          // Pattern covers: ESC[...m, ESC[...;...m, and partial sequences like [0m, [1;32m etc.
+          chunk = chunk.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')  // Full ESC sequences
+            .replace(/\033\[[0-9;]*[a-zA-Z]/g, '')             // Octal ESC sequences
+            .replace(/\[[0-9;]*m/g, '')                        // Partial color codes like [0m, [1;32m
 
           // Process chunk and add to current line
           currentLineContent += chunk
