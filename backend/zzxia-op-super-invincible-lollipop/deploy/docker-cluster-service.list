@@ -1,0 +1,10 @@
+### docker cluster 服务部署清单
+###
+#| SERVICE_NAME                  | DOCKER_IMAGE_PRE_NAME | DOCKER_IMAGE_NAME              | POD_REPLICAS  | CONTAINER_PORTS    | PRIORITY   | NOTE                         |
+#| **服务名**                    | **镜像前置名**        | **DOCKER镜像名**               | **POD副本数** | **容器PORTS**      | **优先级** | **备注**                     |
+#| ----------------------------- | --------------------- | ------------------------------ | ------------: | ------------------ | ---------- | ---------------------------- |
+| child-api                      |                       | child-api                      | 1             | 45300:45300        | 20         |                              |
+| child-manage-api               |                       | child-manage-api               | 1             | 45500:45500        | 20         |                              |
+| child-cosyvoice                |                       | child-cosyvoice                | 1             | 45600:45600        | 20         |                              |
+
+

@@ -1,0 +1,17 @@
+### nginx网站配置清单
+###
+#| PJ                           | DOMAIN_A            |FRONT_HTTP_PORT|FRONT_HTTPS_PORT| MODE      |BACKEND_PROTOCOL_PORT| ITEMS             |  DOMAIN_IPS     | PRIORITY   |
+#| **项目名**                   | **域名A记录**       | **http端口** | **https端口** | **方式**    | **后端协议端口** | **附加项**           | **域名A记录IP** | **优先级** |
+#| ---------------------------- | ------------------- | ------------ | ------------- | ----------- | ---------------- | -------------------- | --------------- | ---------- |
+| gan                           | mtss-gan            | 80           | 443           | realserver  |                  |                      | 120.79.245.254  | 0          |
+| gan-api                       | mtss-gan-api        | 80           | 443           | proxyserver | http:9527        |                      | 120.79.245.254  | 0          |
+| build-log                     | mtss-build-log      | 80           | 443           | realserver  |                  | auth_basic,autoindex | 120.79.245.254  | 0          |
+| child-api                     | mtss-xcx-api        | 80           | 443           | proxyserver | http:45300       | upload_size=50m      | 120.79.245.254  | 5          |
+| child-manage-api              | mtss-mgt-api        | 80           | 443           | proxyserver | http:45500       | upload_size=50m      | 120.79.245.254  | 5          |
+| child-manage-front            | mtss-mgt            | 80           | 443           | realserver  |                  | try_files            | 120.79.245.254  | 5          |
+| child-h5-front                | mtss-app-h5         | 80           | 443           | realserver  |                  | try_files            | 120.79.245.254  | 5          |
+| child-game-front              | mtss-app-game       | 80           | 443           | realserver  |                  | try_files            | 120.79.245.254  | 5          |
+| child-pen-h5-front            | mtss-pen-h5         | 80           | 443           | realserver  |                  | try_files            | 120.79.245.254  | 5          |
+
+
+

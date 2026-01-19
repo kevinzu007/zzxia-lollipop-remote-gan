@@ -1,0 +1,14 @@
+### 项目清单
+###
+#| LANGUAGE_CATEGORY | PJ                    | GIT_NAMESPACE   | BUILD_METHOD | OUTPUT_METHOD     |GOGOGO_RELEASE_METHOD| PRIORITY   | NOTE               |
+#| **类别** | **项目名**                     | **GIT命令空间** | **构建方法** | **输出方法**      | **GOGOGO发布方式**  | **优先级** | **备注**           |
+#| -------- | ------------------------------ | --------------- | ------------ | ----------------- | ------------------- | ---------- | ------------------ |
+| java      | child-api                      |                 | mvn_package  | docker_image_push | docker_cluster      | 20         |                    |
+| java      | child-manage-api               |                 | mvn_package  | docker_image_push | docker_cluster      | 20         |                    |
+| java      | child-cosyvoice                |                 | mvn_package  | docker_image_push | docker_cluster      | 50         |                    |
+| node      | child-manage-front             |                 | npm_build    | direct_deploy     | web_release         | 110        |                    |
+| node      | child-h5-front                 |                 | npm_build    | direct_deploy     | web_release         | 110        |                    |
+| node      | child-game-front               |                 | npm_build    | direct_deploy     | web_release         | 110        |                    |
+| node      | child-pen-h5-front             |                 | npm_build    | direct_deploy     | web_release         | 110        |                    |
+
+
