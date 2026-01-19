@@ -218,6 +218,11 @@ func main() {
 	mux.HandleFunc("/hook/gitlab", s.handleHookGitlab)
 	mux.HandleFunc("/hook/hand", s.handleHookHand)
 
+	// 列表 API (需要认证)
+	mux.HandleFunc("/get/list/project", s.authMiddleware(s.handleGetListProject))
+	mux.HandleFunc("/get/list/docker-cluster-service", s.authMiddleware(s.handleGetListDockerClusterService))
+	mux.HandleFunc("/get/list/nginx", s.authMiddleware(s.handleGetListNginx))
+
 	// 配置 CORS
 	var corsHandler *cors.Cors
 	if cfg.EnableStrictCORS && len(cfg.CORSAllowedOrigins) > 0 {
@@ -231,7 +236,17 @@ func main() {
 		})
 	} else {
 		log.Println("⚠️  CORS 允许所有来源（开发/测试模式）")
-		corsHandler = cors.AllowAll()
+		// 使用 AllowOriginFunc 来动态返回请求的 Origin，支持 credentials
+		corsHandler = cors.New(cors.Options{
+			AllowOriginFunc: func(origin string) bool {
+				// 开发模式允许所有来源
+				return true
+			},
+			AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+			AllowedHeaders:   []string{"Content-Type", "token", "user", "sec", "X-Gitlab-Token"},
+			AllowCredentials: true,
+			MaxAge:           300,
+		})
 	}
 
 	// 设置全局调试模式
@@ -543,6 +558,105 @@ func (s *server) handleGetToken(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// authMiddleware 认证中间件
+func (s *server) authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		clientIP := getClientIP(r)
+
+		// 优先从 Cookie 读取 Token
+		var token string
+		cookie, err := r.Cookie("auth_token")
+		if err == nil && cookie.Value != "" {
+			token = cookie.Value
+		} else {
+			// 兼容旧方式: 从 Header 读取
+			token = r.Header.Get("token")
+		}
+
+		if token == "" {
+			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "未登录，请先登录"})
+			return
+		}
+
+		// 验证 Token
+		_, err = s.authUserToken(token)
+		if err != nil {
+			log.Printf("[AUTH] Token 验证失败: ip=%s error=%v", clientIP, err)
+			jsonResponse(w, http.StatusUnauthorized, map[string]string{"Status": "Error", "Message": "Token 无效或已过期，请重新登录"})
+			return
+		}
+
+		// 验证通过，继续处理
+		next(w, r)
+	}
+}
+
+// handleGetListProject 获取项目列表
+func (s *server) handleGetListProject(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	filePath := filepath.Join(s.cfg.GANCmdHome, "deploy/project.list")
+	// project.list: 第0个字段是类别，第1个字段是项目名
+	items, err := parseListFile(filePath, 0, 1)
+	if err != nil {
+		log.Printf("[LIST] 读取项目列表失败: %v", err)
+		jsonResponse(w, http.StatusInternalServerError, map[string]string{"Status": "Error", "Message": "读取项目列表失败"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]any{
+		"Status": "Success",
+		"Data":   items,
+	})
+}
+
+// handleGetListDockerClusterService 获取微服务列表
+func (s *server) handleGetListDockerClusterService(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	filePath := filepath.Join(s.cfg.GANCmdHome, "deploy/docker-cluster-service.list")
+	// docker-cluster-service.list: 第0个字段是服务名，不需要类别
+	items, err := parseListFile(filePath, -1, 0)
+	if err != nil {
+		log.Printf("[LIST] 读取微服务列表失败: %v", err)
+		jsonResponse(w, http.StatusInternalServerError, map[string]string{"Status": "Error", "Message": "读取微服务列表失败"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]any{
+		"Status": "Success",
+		"Data":   items,
+	})
+}
+
+// handleGetListNginx 获取网站项目列表
+func (s *server) handleGetListNginx(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	filePath := filepath.Join(s.cfg.GANCmdHome, "deploy/nginx.list")
+	// nginx.list: 第0个字段是项目名，不需要类别
+	items, err := parseListFile(filePath, -1, 0)
+	if err != nil {
+		log.Printf("[LIST] 读取网站项目列表失败: %v", err)
+		jsonResponse(w, http.StatusInternalServerError, map[string]string{"Status": "Error", "Message": "读取网站项目列表失败"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]any{
+		"Status": "Success",
+		"Data":   items,
+	})
+}
+
 // Body helper
 func decodeJSONBody(r *http.Request) (map[string]any, []byte, error) {
 	body, err := io.ReadAll(r.Body)
@@ -771,6 +885,65 @@ type RunReq struct {
 	ReleaseVersion string   `json:"release-version"`
 	Extra          string   `json:"extra"`
 	Projects       []string `json:"projects"`
+}
+
+// ListItem 表示列表项
+type ListItem struct {
+	Category string `json:"category"`
+	Name     string `json:"name"`
+}
+
+// parseListFile 解析 .list 文件，返回列表项
+// categoryIndex: 类别字段索引（-1 表示不提取类别）
+// nameIndex: 名称字段索引
+func parseListFile(filePath string, categoryIndex, nameIndex int) ([]ListItem, error) {
+	lines, err := readLines(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("读取文件失败: %w", err)
+	}
+
+	var items []ListItem
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		// 跳过注释和空行
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		// 只处理以 | 开头的数据行
+		if !strings.HasPrefix(trimmed, "|") {
+			continue
+		}
+
+		// 分割字段
+		parts := strings.Split(trimmed, "|")
+		// 去除首尾空字段
+		var fields []string
+		for _, p := range parts {
+			trimField := strings.TrimSpace(p)
+			if trimField != "" {
+				fields = append(fields, trimField)
+			}
+		}
+
+		// 检查字段数量
+		maxIndex := nameIndex
+		if categoryIndex > maxIndex {
+			maxIndex = categoryIndex
+		}
+		if len(fields) <= maxIndex {
+			continue
+		}
+
+		item := ListItem{
+			Name: fields[nameIndex],
+		}
+		if categoryIndex >= 0 && categoryIndex < len(fields) {
+			item.Category = fields[categoryIndex]
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
 }
 
 func buildShellCmd(req RunReq, cfg Config) (string, error) {

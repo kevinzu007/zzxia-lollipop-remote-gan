@@ -22,6 +22,9 @@ window.ganConfig = {
         }
     ],
     categories: ['', 'java', 'node', 'dockerfile'],
+
+    // ⚠️ 以下静态列表配置已废弃，现在从后端 API 动态获取
+    // 保留仅作为参考，实际使用时会被 API 返回的数据覆盖
     projectList: [
         { category: 'html', name: 'gan' },
         { category: 'python', name: 'gan-api' },
@@ -49,13 +52,14 @@ window.ganConfig = {
         { category: 'web', name: 'child-game-front' },
         { category: 'web', name: 'child-pen-h5-front' }
     ],
+
     actions: {
         'build': ['default', 'help', 'list'],
         'build-parallel': ['default', 'help', 'list'],
-        'deploy': ['help', 'list', 'docker', 'web'],
         'gogogo': ['default', 'help', 'list'],
+        'deploy': ['help', 'list', 'docker', 'web'],
         'docker-cluster-service-deploy': ['help', 'list', 'list-run', 'create', 'modify', 'update', 'rollback', 'scale', 'rm', 'status', 'detail', 'logs'],
-        'web-release': ['help', 'list', 'release', 'rollback'],
-        'docker-image-search': ['default', 'help', 'list']
+        'docker-image-search': ['default', 'help', 'list'],
+        'web-release': ['help', 'list', 'release', 'rollback']
     }
 }

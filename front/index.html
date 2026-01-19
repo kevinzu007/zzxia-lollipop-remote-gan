@@ -916,6 +916,27 @@
     let currentShowCategory = true
     let currentNameHeader = '项目名称'
 
+    // 列表缓存
+    const listCache = {
+      project: null,
+      dockerClusterService: null,
+      nginx: null
+    }
+
+    // API URL 映射
+    const listApiMap = {
+      'projectList': '/get/list/project',
+      'microServices': '/get/list/docker-cluster-service',
+      'webProjects': '/get/list/nginx'
+    }
+
+    // 缓存键映射
+    const listCacheKeyMap = {
+      'projectList': 'project',
+      'microServices': 'dockerClusterService',
+      'webProjects': 'nginx'
+    }
+
     const pigEl = document.getElementById('pig')
     const modalMask = document.getElementById('modalMask')
     const loginUserEl = document.getElementById('loginUser')
@@ -963,6 +984,12 @@
             currentToken = ''
             localStorage.removeItem('gan_login')
             updateLoginStatusIcon(false)
+
+            // 清除列表缓存
+            listCache.project = null
+            listCache.dockerClusterService = null
+            listCache.nginx = null
+
             showToast('已切换环境，请重新登录')
           }
 
@@ -1288,16 +1315,79 @@
 
     // ------------- Project Modal Logic -------------
 
+    // 从后端 API 获取列表数据
+    async function fetchProjectList(listType) {
+      const cacheKey = listCacheKeyMap[listType]
+      const apiUrl = listApiMap[listType]
 
-    function openProjectModal() {
+      // 检查缓存
+      if (listCache[cacheKey]) {
+        return listCache[cacheKey]
+      }
+
+      // 调用 API
+      try {
+        const response = await fetch(currentBackendUrl + apiUrl, {
+          method: 'GET',
+          headers: {
+            'token': currentToken
+          },
+          credentials: 'include' // 发送 Cookie
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.Message || `HTTP ${response.status}`)
+        }
+
+        const data = await response.json()
+        if (data.Status === 'Success' && data.Data) {
+          // 缓存数据
+          listCache[cacheKey] = data.Data
+          return data.Data
+        } else {
+          throw new Error(data.Message || '获取列表失败')
+        }
+      } catch (error) {
+        console.error('获取列表失败:', error)
+        throw error
+      }
+    }
+
+    async function openProjectModal() {
+      // 检查登录状态
+      if (!isLoggedIn || !currentToken) {
+        showToast('请先登录')
+        openLogin()
+        return
+      }
+
       const modal = document.getElementById('projectModal')
-      modal.style.display = 'flex'
-      // Update Title
       const headerTitle = modal.querySelector('.modal-header h3')
       if (headerTitle) headerTitle.textContent = currentModalTitle
 
-      renderProjectTable()
+      // 显示模态框
+      modal.style.display = 'flex'
+
+      // 显示加载状态
+      const tbody = document.getElementById('projectTableBody')
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">加载中...</td></tr>'
+
+      try {
+        // 从 API 获取数据
+        const items = await fetchProjectList(currentProjectListName)
+
+        // 更新全局配置（用于 renderProjectTable）
+        window.ganConfig[currentProjectListName] = items
+
+        // 渲染表格
+        renderProjectTable()
+      } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:red;">加载失败：${error.message}</td></tr>`
+        showToast('加载列表失败：' + error.message)
+      }
     }
+
 
     function closeProjectModal() {
       document.getElementById('projectModal').style.display = 'none'

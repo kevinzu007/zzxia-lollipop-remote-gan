@@ -58,6 +58,7 @@
          ]
      }
 
+
      3 gogogo body ：
      {
          "do": "gogogo",
@@ -76,14 +77,12 @@
          ]
      }
 
-     4 docker-cluster-service-deploy body ：
+
+     4 deploy body ：
      {
-         "do": "docker-cluster-service-deploy",
-         "action": "help|list|list-run|create|modify|update|rollback|scale|rm|status|detail|logs",
-         "force": "yes",
-         "gray": "yes",
-         "release-version": "5.5",
-         "extra": "",
+         "do": "deploy",
+         "action": "help|list|docker|web",
+         "Extra": "",
          "projects": [
              "pj1",
              "pj2",
@@ -92,10 +91,13 @@
      }
 
 
-     5 web-release body ：
+     5 docker-cluster-service-deploy body ：
      {
-         "do": "web-release",
-         "action": "help|list|release|rollback",
+         "do": "docker-cluster-service-deploy",
+         "action": "help|list|list-run|create|modify|update|rollback|scale|rm|status|detail|logs",
+         "force": "yes",
+         "gray": "yes",
+         "release-version": "5.5",
          "extra": "",
          "projects": [
              "pj1",
@@ -117,11 +119,12 @@
          ]
      }
 
-     7 deploy body ：
+
+     7 web-release body ：
      {
-         "do": "deploy",
-         "action": "help|list|docker|web",
-         "Extra": "",
+         "do": "web-release",
+         "action": "help|list|release|rollback",
+         "extra": "",
          "projects": [
              "pj1",
              "pj2",
@@ -138,14 +141,14 @@ curl  -X POST  \
           -H "Content-Type: application/json"  \
           -H "X-Gitlab-Event: Push Hook"  \
           -H "X-Gitlab-Token: 1234567890zxc"  \
-          https://mtss-gan-api.mtshengsheng.com/hook/gitlab  \
+          http://127.0.0.1:9527/hook/gitlab  \
           -d  @./jianguoyun/IT/python-webhook/gitlab-push-body.json
 
 
 ### 测试 /hand/hook
 
 1  token获取（示例： 用户名：kevin，密码：123456）：
-curl -X POST https://mtss-gan-api.mtshengsheng.com/get/token  \
+curl -X POST http://127.0.0.1:9527/get/token  \
    -H "user: kevin"  \
    -H "sec: $(echo -n 'kevin123456' | sha1sum | awk '{print $1}')"  \
    -v
@@ -153,17 +156,30 @@ curl -X POST https://mtss-gan-api.mtshengsheng.com/get/token  \
 TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Njc4NzA4NzUsImlhdCI6MTc2Nzg0MjA3NSwidXNlcm5hbWUiOiJrZXZpbiJ9.O-1chPRtktFDGYL5BAmkFn3WkVVWnLZt4QvutASA1ZM"
 
 2  header方式：
-curl -X POST https://mtss-gan-api.mtshengsheng.com/hook/hand \
+curl -X POST http://127.0.0.1:9527/hook/hand \
   -H "Content-Type: application/json" \
   -H "token: ${TOKEN}" \
   -d '{"do": "build", "action": "help", "category": "test", "projects": ["aa"], "extra": "--abc ^aa$"}'
 
 3  body方式：
-curl -X POST https://mtss-gan-api.mtshengsheng.com/hook/hand \
+curl -X POST http://127.0.0.1:9527/hook/hand \
   -H "Content-Type: application/json" \
   -b "auth_token=${TOKEN}" \
   -d '{"do": "build", "action": "help", "category": "test", "projects": ["aa"], "extra": "--abc ^aa$"}'
 
+
+### 测试 /get/list/...
+
+1  /get/list/project
+curl -X GET  http://127.0.0.1:9527/get/list/project  \
+  -H "Content-Type: application/json"  \
+  -H "token: ${TOKEN}"
+
+2  /get/list/docker-cluster-service
+同上
+
+3  /get/list/nginx
+同上
 
 
 
