@@ -963,6 +963,8 @@ func buildShellCmd(req RunReq, cfg Config) (string, error) {
 		cmd = filepath.Join(cfg.GANCmdHome, "deploy/deploy.sh")
 	case "docker-image-search":
 		cmd = filepath.Join(cfg.GANCmdHome, "deploy/docker-image-search.sh")
+	case "gan":
+		cmd = filepath.Join(cfg.GANCmdHome, "gan.sh")
 	default:
 		return "", fmt.Errorf("Webhook信息之【do】不存在或错误")
 	}

@@ -1,0 +1,198 @@
+#!/bin/bash
+#############################################################################
+# Create By: 猪猪侠
+# License: GNU GPLv3
+# Test On: CentOS 7
+#############################################################################
+
+
+# sh
+SH_NAME=${0##*/}
+SH_PATH=$( cd "$( dirname "$0" )" && pwd )
+cd ${SH_PATH}
+
+
+# 引入/etc/profile.d/zzxia-op-super-invincible-lollipop.run-env.sh
+#.  /etc/profile        #-- 非终端界面不会自动引入，必须主动引入
+#NGINX_CONFIG_SH_HOME=
+#PG_MANAGE_SH_HOME=
+#USER_DB_FILE=
+#USER_DB_FILE_APPEND_1=
+
+# 引入env.sh
+
+# 本地env
+ANSIBLE_HOST_FOR_PG_BACKUP_RESTORE='pg_m'
+ANSIBLE_HOST_FOR_NGINX_CERT_REQUEST='nginx_letsencrypt'
+NEED_PRIVILEGES='gan'                   #-- 运行此程序需要的权限，如果需要多个权限，则用【&】分隔
+if [[ -z ${USER_INFO_FROM} ]]; then
+    USER_INFO_FROM=${HOOK_USER_INFO_FROM:-'local'}     #--【local|hook_hand|hook_gitlab】，默认：local
+fi
+# 引入函数
+.  ${SH_PATH}/deploy/function.sh
+
+
+
+# 用法：
+F_HELP()
+{
+    echo "
+    用途：用于远程安装部署。模块说明如下：
+    注意：在deploy节点上运行，需要一堆关联脚本
+    用法:
+        $0 [-h|--help]    #--- 帮助
+        $0 [--build|--build-para|--gogogo|--deploy|--deploy-docker|--deploy-web|--ngx-dns|--ngx-root|--ngx-conf|--ngx-cert|--ngx-cert-w|--pg-b-r|--aliyun-dns|--godaddy-dns]  <参数1> ... <参数n>     #--- 参数1...n 是 \$1 模块的参数
+    参数说明：
+        \$0   : 代表脚本本身
+        []   : 代表是必选项
+        <>   : 代表是可选项
+        |    : 代表左右选其一
+        {}   : 代表参数值，请替换为具体参数值
+        %    : 代表通配符，非精确值，可以被包含
+        #
+        -h|--help      此帮助
+        --build        【build.sh】：项目打包
+        --build-para   【build-parallel.sh】：并行项目打包
+        --gogogo       【gogogo.sh】：项目打包并部署上线
+        --deploy       【deploy.sh】：服务部署上线、回滚
+        --deploy-docker【docker-cluster-service-deploy.sh】：docker服务部署上线、回滚
+        --deploy-web   【web-release.sh】：网站代码部署上线、回滚
+        --ngx-dns      【nginx-dns.sh】：网站域名A记录添加或修改
+        --ngx-root     【nginx-root.sh】：网站root目录初始化
+        --ngx-conf     【nginx-conf.sh】：网站nginx配置设置
+        --ngx-cert     【nginx-cert-letsencrypt-a.sh】：网站域名证书申请
+        --ngx-cert-w   【cert-letsencrypt-wildcart.sh】：泛域名证书申请与更新
+        --pg-b-r       【pg_list_backup_or_restore.sh】：备份或还原pg_m上的数据库
+        --aliyun-dns   【aliyun-dns.sh】：修改aliyun dns
+        --godaddy-dns  【godaddy-dns.sh】：修改godaddy dns
+    示例:
+        #
+        $0  -h
+        $0  --deploy-web  -h                 #--- 运行web-release.sh命令帮助
+        $0  --deploy-web  -r                 #--- 运行web-release.sh命令，发布所有前端项目
+        $0  --deploy-web  -r  项目a 项目b    #--- 运行web-release.sh命令，发布所有前端【项目a、项目b】
+    "
+}
+
+
+
+# 参数检查
+#TEMP=`getopt -o hd:  -l help,do: -- "$@"`
+#if [ $? != 0 ]; then
+#    echo -e "\n猪猪侠警告：参数不合法，请查看帮助【$0 --help】\n"
+#    exit 1
+#fi
+#
+#eval set -- "${TEMP}"
+
+
+# Check for help
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+    F_HELP
+    exit
+fi
+
+
+# 运行环境匹配for Hook
+if [[ -n ${HOOK_GAN_ENV} ]] && [[ ${HOOK_GAN_ENV} != 'NOT_CHECK' ]] && [[ ${HOOK_GAN_ENV} != ${RUN_ENV} ]]; then
+    echo -e "\n猪猪侠警告：运行环境不匹配，跳过（这是正常情况）\n"
+    exit
+fi
+
+
+# 获取用户信息
+F_get_user_info
+r=$?
+if [[ $r != 0 ]]; then
+    exit $r
+fi
+
+
+# 检查用户权限
+F_check_user_priv
+r=$?
+if [[ $r != 0 ]]; then
+    exit $r
+fi
+
+
+# go
+case "$1" in
+    "--build")
+        shift
+        bash ${SH_PATH}/deploy/build.sh  "$@"
+        exit
+        ;;
+    "--build-para")
+        shift
+        bash ${SH_PATH}/deploy/build-parallel.sh  "$@"
+        exit
+        ;;
+    "--gogogo")
+        shift
+        bash ${SH_PATH}/deploy/gogogo.sh  "$@"
+        exit
+        ;;
+    "--deploy")
+        shift
+        bash ${SH_PATH}/deploy/deploy.sh  "$@"
+        exit
+        ;;
+    "--deploy-docker")
+        shift
+        bash ${SH_PATH}/deploy/docker-cluster-service-deploy.sh  "$@"
+        exit
+        ;;
+    "--deploy-web")
+        shift
+        bash ${SH_PATH}/deploy/web-release.sh  "$@"
+        exit
+        ;;
+    "--ngx-dns")
+        shift
+        bash ${SH_PATH}/init/nginx/nginx-config/nginx-dns.sh  "$@"
+        exit
+        ;;
+    "--ngx-root")
+        shift
+        bash ${SH_PATH}/init/nginx/nginx-config/nginx-root.sh  "$@"
+        exit
+        ;;
+    "--ngx-conf")
+        shift
+        bash ${SH_PATH}/init/nginx/nginx-config/nginx-conf.sh  "$@"
+        exit
+        ;;
+    "--ngx-cert")
+        shift
+        ansible ${ANSIBLE_HOST_FOR_NGINX_CERT_REQUEST} -m command -a "bash  ${NGINX_CONFIG_SH_HOME}/nginx-cert-letsencrypt-a.sh  $*"
+        exit
+        ;;
+    "--ngx-cert-w")
+        shift
+        bash ${SH_PATH}/tools/cert-letsencrypt-wildcart.sh  "$@"
+        exit
+        ;;
+    "--pg-b-r")
+        shift
+        ansible ${ANSIBLE_HOST_FOR_PG_BACKUP_RESTORE} -m shell  -a "bash ${PG_MANAGE_SH_HOME}/pg_list_backup_or_restore.sh  $*"
+        exit
+        ;;
+    "--aliyun-dns")
+        shift
+        bash ${SH_PATH}/tools/aliyun-dns.sh  "$@"
+        exit
+        ;;
+    "--godaddy-dns")
+        shift
+        bash ${SH_PATH}/tools/godaddy-dns.sh  "$@"
+        exit
+        ;;
+    *)
+        echo -e "\n骚年，请输入正确的脚本命令参数！【请查看帮助：\$0 --help】\n"
+        exit 1
+        ;;
+esac
+
+
+

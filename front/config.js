@@ -60,6 +60,7 @@ window.ganConfig = {
         'deploy': ['help', 'list', 'docker', 'web'],
         'docker-cluster-service-deploy': ['help', 'list', 'list-run', 'create', 'modify', 'update', 'rollback', 'scale', 'rm', 'status', 'detail', 'logs'],
         'docker-image-search': ['default', 'help', 'list'],
-        'web-release': ['help', 'list', 'release', 'rollback']
+        'web-release': ['help', 'list', 'release', 'rollback'],
+        'gan': ['help', 'build', 'build-para', 'gogogo', 'deploy', 'deploy-docker', 'deploy-web', 'ngx-dns', 'ngx-root', 'ngx-conf', 'ngx-cert', 'ngx-cert-w', 'pg-b-r', 'aliyun-dns', 'godaddy-dns']
     }
 }
