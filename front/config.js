@@ -22,37 +22,6 @@ window.ganConfig = {
         }
     ],
     categories: ['', 'java', 'node', 'dockerfile'],
-
-    // ⚠️ 以下静态列表配置已废弃，现在从后端 API 动态获取
-    // 保留仅作为参考，实际使用时会被 API 返回的数据覆盖
-    projectList: [
-        { category: 'html', name: 'gan' },
-        { category: 'python', name: 'gan-api' },
-        { category: 'product', name: 'nacos-server' },
-        { category: 'product', name: 'neo4j' },
-        { category: 'product', name: 'fluentd' },
-        { category: 'dockerfile', name: 'my-oracle-java-8' },
-        { category: 'java', name: 'gc-common' },
-        { category: 'java', name: 'gc-gray' },
-        { category: 'java', name: 'gc-auth-service' },
-        { category: 'java', name: 'gc-monitor' },
-        { category: 'node', name: 'gc-common-front' },
-        { category: 'node', name: 'gc-platform-node' },
-        { category: 'node', name: 'gc-agent-front' },
-        { category: 'node', name: 'gc-fastprotect-front' }
-    ],
-    microServices: [
-        { category: 'microservice', name: 'child-api' },
-        { category: 'microservice', name: 'child-manage-api' },
-        { category: 'microservice', name: 'child-cosyvoice' }
-    ],
-    webProjects: [
-        { category: 'web', name: 'child-manage-front' },
-        { category: 'web', name: 'child-h5-front' },
-        { category: 'web', name: 'child-game-front' },
-        { category: 'web', name: 'child-pen-h5-front' }
-    ],
-
     actions: {
         'build': ['default', 'help', 'list'],
         'build-parallel': ['default', 'help', 'list'],

@@ -100,7 +100,7 @@ func loadConfig() Config {
 	yamlConfig := map[string]string{}
 	configFile := os.Getenv("CONFIG_FILE")
 	if configFile == "" {
-		configFile = "../config.yaml"
+		configFile = "./config.yaml"
 	}
 	if yamlMap, err := loadYAMLConfig(configFile); err == nil {
 		for k, v := range yamlMap {

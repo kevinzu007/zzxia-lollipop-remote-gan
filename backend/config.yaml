@@ -1,50 +1,59 @@
 ## Go 版 lollipop-remote-gan-api 配置示例
 ## 可复制为 config.yaml 修改
 
-GAN_CMD_HOME: "../zzxia-op-super-invincible-lollipop"
-GAN_LOG_HOME: "./log"
-GAN_RUN_ENV: "dev"
-
-USER_DB_FILE: "../my_sec/user.db"
+LISTEN_ADDR: ":9527"                 #-- 侦听地址与端口
+GAN_LOG_HOME: "./log"                #-- 日志路径
 
 
-GITLAB_SECRET_TOKEN: "1234567890zxc"
-GITLAB_GIT_COMMIT_ENV_CHECK: "YES"
-GITLAB_HOOK_SEND_EMAIL: "YES"
+## ===== zzxia-op-super-invincible-lollipop 关联配置 =====
+GAN_CMD_HOME: "./samples/zzxia-op-super-invincible-lollipop"    #-- zzxia-op-super-invincible-lollipop项目路径
+GAN_RUN_ENV: "dev"                   #-- zzxia-op-super-invincible-lollipop 运行环境
+USER_DB_FILE: "./samples/my_sec/user.db"    #-- 用户认证文件，一般与 zzxia-op-super-invincible-lollipop 共用
 
-HAND_HOOK_SEND_EMAIL: "NO"
+
+## ===== /hook/gitlab 配置 =====
+GITLAB_SECRET_TOKEN: "1234567890zxc"    #-- 设置自己的
+GITLAB_GIT_COMMIT_ENV_CHECK: "YES"      #-- 是否检查 git commit msg 中是否包含信息{env=dev|stag|prod|其他}
+GITLAB_HOOK_SEND_EMAIL: "NO"            #-- 通过${GAN_CMD_HOME}/tools/send_mail.sh 发邮件，需要预先配置
 
 
-LISTEN_ADDR: ":9527"
+## ===== /hook/hand 配置 =====
+HAND_HOOK_SEND_EMAIL: "NO"             #-- 通过${GAN_CMD_HOME}/tools/send_mail.sh 发邮件，需要预先配置
+
 
 ## ===== JWT 认证配置 =====
-# JWT 签名密钥（请修改为随机字符串，建议 32 位以上，shell：openssl rand -base64 32）
-JWT_SECRET: "your-very-secure-random-secret-key-change-me-please"
+# JWT 签名密钥
+#   （请修改为随机字符串，建议 32 位以上，shell：openssl rand -base64 32）
+JWT_SECRET: "0qACuImQcmSTXoJoNmQHyn0wB/j7izdVdjFeRgaUb1s="
 # JWT Token 有效期（小时），默认 8 小时
 JWT_EXPIRATION_HOURS: "8"
 
+
 ## ===== HTTPS 配置 =====
 # 是否启用 HTTPS（YES/NO）
+# 如果做反向代理，则这里一般不需要HTTPS
 ENABLE_HTTPS: "NO"
 # TLS 证书文件路径（启用 HTTPS 时必填）
 TLS_CERT_FILE: "/etc/letsencrypt/live/yourdomain.com/fullchain.pem"
 # TLS 私钥文件路径（启用 HTTPS 时必填）
 TLS_KEY_FILE: "/etc/letsencrypt/live/yourdomain.com/privkey.pem"
 
+
 ## ===== Cookie 配置 =====
 # 是否使用 HttpOnly Cookie 存储 Token（YES/NO）
 # YES = 使用 Cookie（更安全，防 XSS，但不支持跨域/多环境切换）
 # NO = 返回 JSON Token（支持多环境切换，但安全性稍低）
 # 注意：如果使用 Cookie 认证（USE_COOKIE_AUTH: "YES"），就必须启用严格 CORS（ENABLE_STRICT_CORS: "YES"）。
-USE_COOKIE_AUTH: "YES"
+USE_COOKIE_AUTH: "NO"
+
 
 ## ===== CORS 跨域配置 =====
 # 是否启用严格 CORS 限制（YES/NO）
 # NO = 允许所有来源（开发/测试环境）
 # YES = 仅允许配置的来源（生产环境）
-ENABLE_STRICT_CORS: "YES"
+ENABLE_STRICT_CORS: "NO"
 # 允许的来源列表（逗号分隔，启用严格 CORS 时生效）
-CORS_ALLOWED_ORIGINS: "https://yourdomain.com,https://www.yourdomain.com,http://localhost:3000"
+CORS_ALLOWED_ORIGINS: "https://mtss-gan.mtshengsheng.com,http://192.168.31.44:8888,http://127.0.0.1:8888,http://localhost:8888"
 # 附加说明：
 #   使用 withCredentials: true (携带 Cookie) 时：
 #   ❌ ENABLE_STRICT_CORS: "NO" → 返回 Access-Control-Allow-Origin: * → 浏览器报错
@@ -53,9 +62,11 @@ CORS_ALLOWED_ORIGINS: "https://yourdomain.com,https://www.yourdomain.com,http://
 #   ✅ ENABLE_STRICT_CORS: "NO" → 返回 Access-Control-Allow-Origin: * → 正常工作
 #   ✅ ENABLE_STRICT_CORS: "YES" → 返回具体来源 → 正常工作
 
+
 ## ===== 调试模式 =====
 # 是否启用调试模式（YES/NO）
 # YES = 输出详细的调试日志（用于排查问题）
 # NO = 只输出正常日志（生产环境推荐）
 DEBUG_MODE: "NO"
+
 

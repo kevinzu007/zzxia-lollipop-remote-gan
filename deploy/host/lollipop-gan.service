@@ -1,0 +1,18 @@
+[Unit]
+Description=Lollipop Remote GAN API
+After=network.target
+
+[Service]
+Type=simple
+# Suggest running as root if scripts need docker access without group tweaks, 
+# or use a specific user if permissions allow.
+User=root
+Group=root
+WorkingDirectory=/opt/lollipop-remote-gan
+Environment=CONFIG_FILE=/opt/lollipop-remote-gan/config.yaml
+ExecStart=/opt/lollipop-remote-gan/lollipop-remote-gan-api
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.backend
+    container_name: lollipop-backend
+    restart: unless-stopped
+    ports:
+      - "9527:9527"
+    volumes:
+      # Sibling Docker: Allow container to control host Docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount the scripts
+      # NOTE: For production usage, point this to your actual clone of zzxia-op-super-invincible-lollipop
+      # Example: - /path/to/host/zzxia-op-super-invincible-lollipop:/app/scripts
+      - ../../backend/samples/zzxia-op-super-invincible-lollipop:/app/zzxia-op-super-invincible-lollipop
+      - ../../backend/samples/my_sec:/app/my_sec
+      # Persist configuration
+      - ./config.yaml:/app/config.yaml
+      # Persist logs
+      - ./logs/backend:/app/log
+    environment:
+      # Paths inside the container
+      - CONFIG_FILE=/app/config.yaml
+      - GAN_CMD_HOME=/app/zzxia-op-super-invincible-lollipop
+      - USER_DB_FILE=/app/my_sec/user.db
+      - LISTEN_ADDR=:9527
+      # If accessing via the frontend container proxy, localhost is fine. If external, add domain here.
+      - CORS_ALLOWED_ORIGINS=http://localhost,http://127.0.0.1
+      - DEBUG_MODE=NO
+    networks:
+      - lollipop-net
+
+  frontend:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.frontend
+    container_name: lollipop-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      # Persist frontend configuration
+      - ./config.js:/usr/share/nginx/html/config.js
+    networks:
+      - lollipop-net
+
+networks:
+  lollipop-net:
+    driver: bridge

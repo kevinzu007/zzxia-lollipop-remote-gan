@@ -1,0 +1,48 @@
+# Build Stage
+FROM golang:1.21-bullseye AS builder
+
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download
+
+# Copy the source code
+COPY backend/ .
+
+# Build the application
+# CGO_ENABLED=0 creates a statically linked binary
+RUN CGO_ENABLED=0 GOOS=linux go build -o lollipop-remote-gan-api main.go
+
+# Final Stage
+FROM debian:bullseye-slim
+
+WORKDIR /app
+
+# Install necessary tools:
+# - ca-certificates: for HTTPS requests
+# - curl, bash: for scripts
+# - docker.io: docker client for DinD (Sibling Docker)
+# - git: often used in deployment scripts
+# - iputils-ping, net-tools: for debugging network
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    bash \
+    git \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the binary from builder
+COPY --from=builder /app/lollipop-remote-gan-api .
+# Copy sample config as default, user can override via volume
+COPY --from=builder /app/config.yaml.sample ./config.yaml
+
+# Create log directory
+RUN mkdir log
+
+# Expose port
+EXPOSE 9527
+
+# Command to run
+CMD ["./lollipop-remote-gan-api"]
