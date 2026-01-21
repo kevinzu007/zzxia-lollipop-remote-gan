@@ -598,7 +598,7 @@ func (s *server) handleGetListProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := filepath.Join(s.cfg.GANCmdHome, "deploy/project.list")
+	filePath := filepath.Join(s.cfg.GANCmdHome, "fuckingdoit/project.list")
 	// project.list: 第0个字段是类别，第1个字段是项目名
 	items, err := parseListFile(filePath, 0, 1)
 	if err != nil {
@@ -620,7 +620,7 @@ func (s *server) handleGetListDockerClusterService(w http.ResponseWriter, r *htt
 		return
 	}
 
-	filePath := filepath.Join(s.cfg.GANCmdHome, "deploy/docker-cluster-service.list")
+	filePath := filepath.Join(s.cfg.GANCmdHome, "fuckingdoit/docker-cluster-service.list")
 	// docker-cluster-service.list: 第0个字段是服务名，不需要类别
 	items, err := parseListFile(filePath, -1, 0)
 	if err != nil {
@@ -642,7 +642,7 @@ func (s *server) handleGetListNginx(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := filepath.Join(s.cfg.GANCmdHome, "deploy/nginx.list")
+	filePath := filepath.Join(s.cfg.GANCmdHome, "fuckingdoit/nginx.list")
 	// nginx.list: 第0个字段是项目名，不需要类别
 	items, err := parseListFile(filePath, -1, 0)
 	if err != nil {
@@ -828,11 +828,11 @@ func (s *server) handleHookGitlab(w http.ResponseWriter, r *http.Request) {
 	var cmd string
 	switch ganDo {
 	case "":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/gogogo.sh")
+		cmd = filepath.Join(s.cfg.GANCmdHome, "fuckingdoit/gogogo.sh")
 	case "build":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/build.sh")
+		cmd = filepath.Join(s.cfg.GANCmdHome, "fuckingdoit/build.sh")
 	case "gogogo":
-		cmd = filepath.Join(s.cfg.GANCmdHome, "deploy/gogogo.sh")
+		cmd = filepath.Join(s.cfg.GANCmdHome, "fuckingdoit/gogogo.sh")
 	default:
 		jsonResponse(w, http.StatusBadRequest, map[string]string{"Status": "Error", "Message": "Webhook信息之【do】不存在、错误或超出范围"})
 		return
@@ -950,19 +950,19 @@ func buildShellCmd(req RunReq, cfg Config) (string, error) {
 	var cmd string
 	switch req.Do {
 	case "build":
-		cmd = filepath.Join(cfg.GANCmdHome, "deploy/build.sh")
+		cmd = filepath.Join(cfg.GANCmdHome, "fuckingdoit/build.sh")
 	case "build-para", "build-parallel":
-		cmd = filepath.Join(cfg.GANCmdHome, "deploy/build-parallel.sh")
+		cmd = filepath.Join(cfg.GANCmdHome, "fuckingdoit/build-parallel.sh")
 	case "gogogo":
-		cmd = filepath.Join(cfg.GANCmdHome, "deploy/gogogo.sh")
+		cmd = filepath.Join(cfg.GANCmdHome, "fuckingdoit/gogogo.sh")
 	case "deploy-docker", "docker-cluster-service-deploy":
-		cmd = filepath.Join(cfg.GANCmdHome, "deploy/docker-cluster-service-deploy.sh")
+		cmd = filepath.Join(cfg.GANCmdHome, "fuckingdoit/docker-cluster-service-deploy.sh")
 	case "deploy-web", "web-release":
-		cmd = filepath.Join(cfg.GANCmdHome, "deploy/web-release.sh")
+		cmd = filepath.Join(cfg.GANCmdHome, "fuckingdoit/web-release.sh")
 	case "deploy":
-		cmd = filepath.Join(cfg.GANCmdHome, "deploy/deploy.sh")
+		cmd = filepath.Join(cfg.GANCmdHome, "fuckingdoit/deploy.sh")
 	case "docker-image-search":
-		cmd = filepath.Join(cfg.GANCmdHome, "deploy/docker-image-search.sh")
+		cmd = filepath.Join(cfg.GANCmdHome, "fuckingdoit/docker-image-search.sh")
 	case "gan":
 		cmd = filepath.Join(cfg.GANCmdHome, "gan.sh")
 	default:
