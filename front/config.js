@@ -21,7 +21,6 @@ window.ganConfig = {
             url: 'https://mtss-gan-api.mtshengsheng.com'
         }
     ],
-    categories: ['', 'java', 'node', 'dockerfile'],
     actions: {
         'build': ['default', 'help', 'list'],
         'build-parallel': ['default', 'help', 'list'],
@@ -33,3 +32,4 @@ window.ganConfig = {
         'gan': ['help', 'build', 'build-para', 'gogogo', 'deploy', 'deploy-docker', 'deploy-web', 'ngx-dns', 'ngx-root', 'ngx-conf', 'ngx-cert', 'ngx-cert-w', 'pg-b-r', 'aliyun-dns', 'godaddy-dns']
     }
 }
+

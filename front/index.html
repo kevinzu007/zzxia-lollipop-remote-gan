@@ -998,7 +998,11 @@
       })
 
       // Populate categories
-      if (window.ganConfig.categories) {
+      if (isLoggedIn) {
+        loadCategories()
+      } else if (window.ganConfig.categories) {
+        // Fallback or initial static config
+
         const catSelect = document.getElementById('category')
         catSelect.innerHTML = ''
         window.ganConfig.categories.forEach(cat => {
@@ -1293,6 +1297,7 @@
             closeLogin()
             updateLoginStatusIcon(true)
             showToast('登录成功！')
+            loadCategories() // Load categories after login
           } else {
             showToast('登录失败：' + (response.Message || '未知错误'))
           }
@@ -1500,6 +1505,70 @@
     document.getElementById('projectModal').addEventListener('click', (e) => {
       if (e.target.id === 'projectModal') closeProjectModal()
     })
+
+    // ------------- Category Logic -------------
+    async function loadCategories() {
+      // Reuse fetchProjectList logic for 'projectList'
+      // This ensures we get the list from backend
+      try {
+        const items = await fetchProjectList('projectList')
+        const categories = new Set()
+        items.forEach(item => {
+          if (item.category) {
+            categories.add(item.category)
+          }
+        })
+
+        // Sort categories if needed, or keep order
+        const sortedCats = Array.from(categories).sort()
+
+        const catSelect = document.getElementById('category')
+        // Preserve current selection if possible? 
+        // Or just clear and rebuild.
+        catSelect.innerHTML = ''
+
+        // Add empty option if desired, or just list categories
+        const emptyOpt = document.createElement('option')
+        emptyOpt.value = ''
+        emptyOpt.textContent = ''
+        catSelect.appendChild(emptyOpt)
+
+        sortedCats.forEach(cat => {
+          const opt = document.createElement('option')
+          opt.value = cat
+          opt.textContent = cat
+          catSelect.appendChild(opt)
+        })
+
+        // Update global config just in case
+        if (window.ganConfig) {
+          window.ganConfig.categories = [''].concat(sortedCats)
+        }
+
+      } catch (e) {
+        console.error('Failed to load categories', e)
+        // Silent fail or toast?
+      }
+    }
+
+    // Intercept category click
+    const categorySelect = document.getElementById('category')
+    if (categorySelect) {
+      categorySelect.addEventListener('mousedown', (e) => {
+        if (!isLoggedIn) {
+          e.preventDefault()
+          showToast('请先登录')
+          openLogin()
+        } else {
+          // If logged in, maybe check if we have options?
+          // But we should load them on login or init.
+          // If for some reason empty (except default), try load
+          if (categorySelect.options.length <= 1) {
+            loadCategories()
+          }
+        }
+      })
+    }
 
 
     // ------------- 开干 -------------

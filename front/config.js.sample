@@ -21,7 +21,6 @@ window.ganConfig = {
             url: 'https://yourdomain.com'
         }
     ],
-    categories: ['', 'java', 'node', 'dockerfile'],
     actions: {
         'build': ['default', 'help', 'list'],
         'build-parallel': ['default', 'help', 'list'],
