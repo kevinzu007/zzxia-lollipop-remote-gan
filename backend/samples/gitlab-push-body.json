@@ -1,0 +1,69 @@
+{
+  "object_kind": "push",
+  "event_name": "push",
+  "before": "1f2b798f8fcd17c4d8eeedaa5c5f96270a995574",
+  "after": "10874a7fc39b8eda3ffcd0a236888f08afb70859",
+  "ref": "refs/heads/dev",
+  "checkout_sha": "10874a7fc39b8eda3ffcd0a236888f08afb70859",
+  "message": null,
+  "user_id": 7,
+  "user_name": "罗斌",
+  "user_username": "luobin",
+  "user_email": "741174533@qq.com",
+  "user_avatar": "http://g.zjlh.lan/uploads/-/system/user/avatar/7/avatar.png",
+  "project_id": 91,
+  "project": {
+    "id": 91,
+    "name": "deploy_resource",
+    "description": "系统发布（部署）用资源（SQL、项目清单）",
+    "web_url": "http://g.zjlh.lan/gclife/deploy_resource",
+    "avatar_url": null,
+    "git_ssh_url": "git@g.zjlh.lan:gclife/deploy_resource.git",
+    "git_http_url": "http://g.zjlh.lan/gclife/deploy_resource.git",
+    "namespace": "gclife",
+    "visibility_level": 0,
+    "path_with_namespace": "gclife/deploy_resource",
+    "default_branch": "master",
+    "ci_config_path": null,
+    "homepage": "http://g.zjlh.lan/gclife/deploy_resource",
+    "url": "git@g.zjlh.lan:gclife/deploy_resource.git",
+    "ssh_url": "git@g.zjlh.lan:gclife/deploy_resource.git",
+    "http_url": "http://g.zjlh.lan/gclife/deploy_resource.git"
+  },
+  "commits": [{
+    "id": "31d5483a5667bfb5c2c8be237eef3662108c31aa",
+    "message": "6.0.8\n",
+    "timestamp": "2022-12-28T09:37:52Z",
+    "url": "http://g.zjlh.lan/gclife/deploy_resource/commit/31d5483a5667bfb5c2c8be237eef3662108c31aa",
+    "author": {
+      "name": "luobin",
+      "email": "741174533@qq.com"
+    },
+    "added": ["6.0/6.0.8/罗斌/apply.sql", "6.0/6.0.8/罗斌/platform.sql", "6.0/6.0.8/罗斌/发布清单.xlsx"],
+    "modified": [],
+    "removed": []
+  }, {
+    "id": "10874a7fc39b8eda3ffcd0a236888f08afb70859",
+    "message": "Merge remote-tracking branch 'origin/dev' into dev{env=dev,do=gogogo,skiptest=yes,version=5.5,gray=yes}\n",
+    "timestamp": "2022-12-28T09:38:00Z",
+    "url": "http://g.zjlh.lan/gclife/deploy_resource/commit/10874a7fc39b8eda3ffcd0a236888f08afb70859",
+    "author": {
+      "name": "luobin",
+      "email": "741174533@qq.com"
+    },
+    "added": ["6.0/5.9.1&6.0.3汇总/endorse.sql", "6.0/5.9.1&6.0.3汇总/platform 2.sql", "6.0/5.9.1&6.0.3汇总/platform.sql", "6.0/5.9.1&6.0.3汇总/renewal.sql", "6.0/5.9.1&6.0.3汇总/发布清单汇总.xlsx", "6.0/6.0.7/卢少鑫/发布清单.xlsx"],
+    "modified": [".DS_Store"],
+    "removed": []
+  }],
+  "total_commits_count": 2,
+  "push_options": {},
+  "repository": {
+    "name": "deploy_resource",
+    "url": "git@g.zjlh.lan:gclife/deploy_resource.git",
+    "description": "系统发布（部署）用资源（SQL、项目清单）",
+    "homepage": "http://g.zjlh.lan/gclife/deploy_resource",
+    "git_http_url": "http://g.zjlh.lan/gclife/deploy_resource.git",
+    "git_ssh_url": "git@g.zjlh.lan:gclife/deploy_resource.git",
+    "visibility_level": 0
+  }
+}

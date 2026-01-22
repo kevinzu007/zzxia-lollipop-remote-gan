@@ -133,7 +133,7 @@
 
 ## 测试 api
 
-### 测试 /gitlab/hook
+### 测试 /hook/gitlab
 
 #### 要点：
 
@@ -143,7 +143,7 @@
 
 #### gitlab上设置：
 
-1. 设置gitlab中项目的webhooks，比如 Secret token：1234567890zxc ; 网址：http://127.0.0.1:9527/hook/gitlab
+1. 设置gitlab中项目的webhooks，比如 Secret token：1234567890zxc ; 网址：http://192.168.31.11:9527/hook/gitlab
 2. git commit信息包含上面信息，等待看结果
 
 #### curl方式测试：
@@ -153,7 +153,7 @@ curl  -X POST  \
           -H "X-Gitlab-Event: Push Hook"  \
           -H "X-Gitlab-Token: 1234567890zxc"  \
           http://127.0.0.1:9527/hook/gitlab  \
-          -d  @./jianguoyun/IT/python-webhook/gitlab-push-body.json
+          -d  @./samples/gitlab-push-body.json
 
 
 ### 测试 /hand/hook
@@ -199,6 +199,5 @@ curl -X GET  http://127.0.0.1:9527/get/list/project  \
 
 3  /get/list/nginx
 同上
-
 
 
