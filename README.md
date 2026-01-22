@@ -41,7 +41,7 @@
 3. 【Fork】她，为她增加新功能，修Bug，让她更加卡哇伊；
 4. 【Issue】她，告诉她有哪些小脾气，她会改的，手动小绵羊；
 5. 【打赏】她，为她买jk；
-<img src="http://pic-bed.zzxia.vip/pic1/dao.png" alt="打赏" style="zoom:40%;" />
+<img src="https://gitee.com/zhf_sy/pic-bed/raw/master/dao.png" alt="打赏" style="zoom:40%;" />
 
 
 
@@ -107,11 +107,11 @@ graph LR;
 
 - PC前端（如图）：
 
-![image-20260122141531771](http://pic-bed.zzxia.vip/pic1/image-20260122141531771.png)
+![image-20260122141531771](https://gitee.com/zhf_sy/pic-bed/raw/master/lollipop-pc.png)
 
 - 手机前端（如图）
 
-  ![image-20260122142730660](http://pic-bed.zzxia.vip/pic1/image-20260122142730660.png)
+  ![image-20260122142730660](https://gitee.com/zhf_sy/pic-bed/raw/master/lollipop-mobile.png)
 
 
 
