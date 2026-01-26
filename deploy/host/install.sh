@@ -95,6 +95,9 @@ install_front() {
     rm -rf "$INSTALL_DIR/front"
     cp -r "$FRONT_DIR" "$INSTALL_DIR/"
     echo "Frontend Installation Complete."
+    echo ""
+    echo "Reminder: Please configure Nginx manually."
+    echo "You can use the template at: $CURRENT_DIR/nginx_host.conf"
 }
 
 show_complete_info() {
@@ -106,7 +109,6 @@ show_complete_info() {
     echo "   (Ensure GAN_CMD_HOME points to your scripts)"
     echo "2. Start Service: systemctl start lollipop-gan"
     echo "3. Enable on boot: systemctl enable lollipop-gan"
-    echo "4. Configure Nginx: Copy $CURRENT_DIR/nginx_host.conf to /etc/nginx/conf.d/"
     echo "=============================="
 }
 
