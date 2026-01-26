@@ -7,6 +7,8 @@ PROJECT_ROOT=$(realpath "../../")
 BACKEND_DIR="$PROJECT_ROOT/backend"
 FRONT_DIR="$PROJECT_ROOT/front"
 INSTALL_DIR="/opt/lollipop-remote-gan"
+BACKEND_INSTALL_DIR="$INSTALL_DIR/backend"
+FRONT_INSTALL_DIR="$INSTALL_DIR/front"
 BIN_NAME="lollipop-remote-gan-api"
 GITEE_REPO="zhf_sy/zzxia-lollipop-remote-gan"
 
@@ -22,11 +24,12 @@ get_latest_tag() {
 
 setup_config() {
     echo "=== Setting up Configuration ==="
-    if [ -f "$INSTALL_DIR/config.yaml" ]; then
-        echo "Configuration file already exists in $INSTALL_DIR, skipping..."
+    mkdir -p "$BACKEND_INSTALL_DIR"
+    if [ -f "$BACKEND_INSTALL_DIR/config.yaml" ]; then
+        echo "Configuration file already exists in $BACKEND_INSTALL_DIR, skipping..."
     else
-        cp "$BACKEND_DIR/config.yaml.sample" "$INSTALL_DIR/config.yaml"
-        echo "Copied sample config. Please edit $INSTALL_DIR/config.yaml"
+        cp "$BACKEND_DIR/config.yaml.sample" "$BACKEND_INSTALL_DIR/config.yaml"
+        echo "Copied sample config. Please edit $BACKEND_INSTALL_DIR/config.yaml"
     fi
 }
 
@@ -54,8 +57,8 @@ install_backend_build() {
     fi
     echo "Build success."
 
-    mkdir -p "$INSTALL_DIR"
-    cp "$BACKEND_DIR/$BIN_NAME" "$INSTALL_DIR/"
+    mkdir -p "$BACKEND_INSTALL_DIR"
+    cp "$BACKEND_DIR/$BIN_NAME" "$BACKEND_INSTALL_DIR/"
     cd "$CURRENT_DIR"
 
     setup_config
@@ -66,7 +69,7 @@ install_backend_build() {
 
 install_backend_download() {
     echo "=== 1. Downloading Backend Binary ==="
-    mkdir -p "$INSTALL_DIR"
+    mkdir -p "$BACKEND_INSTALL_DIR"
     
     local tag=$(get_latest_tag)
     if [ -z "$tag" ]; then
@@ -76,11 +79,11 @@ install_backend_download() {
     
     local url="https://gitee.com/$GITEE_REPO/releases/download/$tag/$BIN_NAME"
     echo "Downloading latest binary ($tag) from Gitee..."
-    if ! curl -L -o "$INSTALL_DIR/$BIN_NAME" "$url"; then
+    if ! curl -L -o "$BACKEND_INSTALL_DIR/$BIN_NAME" "$url"; then
         echo "Download failed!"
         return 1
     fi
-    chmod +x "$INSTALL_DIR/$BIN_NAME"
+    chmod +x "$BACKEND_INSTALL_DIR/$BIN_NAME"
     echo "Download success."
 
     setup_config
@@ -91,24 +94,23 @@ install_backend_download() {
 
 install_front() {
     echo "=== Installing Frontend ==="
-    mkdir -p "$INSTALL_DIR/front"
+    mkdir -p "$FRONT_INSTALL_DIR"
     
     # Backup existing config to avoid overwrite
-    if [ -f "$INSTALL_DIR/front/config.js" ]; then
-        mv "$INSTALL_DIR/front/config.js" "$INSTALL_DIR/front/config.js.bak"
+    if [ -f "$FRONT_INSTALL_DIR/config.js" ]; then
+        mv "$FRONT_INSTALL_DIR/config.js" "$FRONT_INSTALL_DIR/config.js.bak"
     fi
 
     # Copy files
-    cp -rf "$FRONT_DIR"/* "$INSTALL_DIR/front/"
+    cp -rf "$FRONT_DIR"/* "$FRONT_INSTALL_DIR/"
 
     # Restore or initialize config.js
-    if [ -f "$INSTALL_DIR/front/config.js.bak" ]; then
-        mv "$INSTALL_DIR/front/config.js.bak" "$INSTALL_DIR/front/config.js"
+    if [ -f "$FRONT_INSTALL_DIR/config.js.bak" ]; then
+        mv "$FRONT_INSTALL_DIR/config.js.bak" "$FRONT_INSTALL_DIR/config.js"
         echo "Existing frontend config.js preserved."
     else
         # Ensure we start with sample if no previous config existed
-        # (Overwriting the dev config.js that might have been copied)
-        cp "$FRONT_DIR/config.js.sample" "$INSTALL_DIR/front/config.js"
+        cp "$FRONT_DIR/config.js.sample" "$FRONT_INSTALL_DIR/config.js"
         echo "Created new config.js from sample."
     fi
 
@@ -122,12 +124,14 @@ show_complete_info() {
     echo ""
     echo "=== Installation Summary ==="
     echo "Install Dir: $INSTALL_DIR"
+    echo "Backend Dir: $BACKEND_INSTALL_DIR"
+    echo "Front Dir:   $FRONT_INSTALL_DIR"
     echo "Next steps:"
-    echo "1. Edit config:  vi $INSTALL_DIR/config.yaml"
+    echo "1. Edit config:  vi $BACKEND_INSTALL_DIR/config.yaml"
     echo "   (Ensure GAN_CMD_HOME points to your scripts)"
     echo "2. Start Service: systemctl start lollipop-gan"
     echo "3. Enable on boot: systemctl enable lollipop-gan"
-    echo "4. Configure Nginx: Copy $CURRENT_DIR/nginx_host.conf to /etc/nginx/conf.d/"
+    echo "4. Configure Nginx: You can use the template at: $CURRENT_DIR/nginx_host.conf"
     echo "=============================="
 }
 

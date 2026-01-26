@@ -8,9 +8,9 @@ Type=simple
 # or use a specific user if permissions allow.
 User=root
 Group=root
-WorkingDirectory=/opt/lollipop-remote-gan
-Environment=CONFIG_FILE=/opt/lollipop-remote-gan/config.yaml
-ExecStart=/opt/lollipop-remote-gan/lollipop-remote-gan-api
+WorkingDirectory=/opt/lollipop-remote-gan/backend
+Environment=CONFIG_FILE=/opt/lollipop-remote-gan/backend/config.yaml
+ExecStart=/opt/lollipop-remote-gan/backend/lollipop-remote-gan-api
 Restart=on-failure
 RestartSec=5s
 
