@@ -91,9 +91,27 @@ install_backend_download() {
 
 install_front() {
     echo "=== Installing Frontend ==="
-    mkdir -p "$INSTALL_DIR"
-    rm -rf "$INSTALL_DIR/front"
-    cp -r "$FRONT_DIR" "$INSTALL_DIR/"
+    mkdir -p "$INSTALL_DIR/front"
+    
+    # Backup existing config to avoid overwrite
+    if [ -f "$INSTALL_DIR/front/config.js" ]; then
+        mv "$INSTALL_DIR/front/config.js" "$INSTALL_DIR/front/config.js.bak"
+    fi
+
+    # Copy files
+    cp -rf "$FRONT_DIR"/* "$INSTALL_DIR/front/"
+
+    # Restore or initialize config.js
+    if [ -f "$INSTALL_DIR/front/config.js.bak" ]; then
+        mv "$INSTALL_DIR/front/config.js.bak" "$INSTALL_DIR/front/config.js"
+        echo "Existing frontend config.js preserved."
+    else
+        # Ensure we start with sample if no previous config existed
+        # (Overwriting the dev config.js that might have been copied)
+        cp "$FRONT_DIR/config.js.sample" "$INSTALL_DIR/front/config.js"
+        echo "Created new config.js from sample."
+    fi
+
     echo "Frontend Installation Complete."
     echo ""
     echo "Reminder: Please configure Nginx manually."
@@ -109,6 +127,7 @@ show_complete_info() {
     echo "   (Ensure GAN_CMD_HOME points to your scripts)"
     echo "2. Start Service: systemctl start lollipop-gan"
     echo "3. Enable on boot: systemctl enable lollipop-gan"
+    echo "4. Configure Nginx: Copy $CURRENT_DIR/nginx_host.conf to /etc/nginx/conf.d/"
     echo "=============================="
 }
 
