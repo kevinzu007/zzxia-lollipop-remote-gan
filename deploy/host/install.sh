@@ -39,8 +39,8 @@ echo "=== 3. Copying Files ==="
 cp "$BACKEND_DIR/$BIN_NAME" "$INSTALL_DIR/"
 
 # Config
-if [ -f "$BACKEND_DIR/config.yaml" ]; then
-    cp "$BACKEND_DIR/config.yaml" "$INSTALL_DIR/"
+if [ -f "$INSTALL_DIR/config.yaml" ]; then
+    echo "Configuration file already exists in $INSTALL_DIR, skipping..."
 else
     cp "$BACKEND_DIR/config.yaml.sample" "$INSTALL_DIR/config.yaml"
     echo "Copied sample config. Please edit $INSTALL_DIR/config.yaml"
